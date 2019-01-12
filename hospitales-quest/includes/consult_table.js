@@ -1,66 +1,152 @@
-if ($('select[name=tipo_consulta]').val() == 'noSelection'){
-		var o = '<option id="no">No ha seleccionado un tipo de consulta</option>';
-		$('#especialidadSelect option').remove();
+$(document).ready(function(data){
+	if ($('select[name=tipo_consulta]').val() == 'noSelection'){
+		var o = '<option id="sinTP" selected>No ha seleccionado un tipo de consulta</option>';
 		$('#especialidadSelect').append(o);
+		$('#guardarConsulta').css("display", "none");
+		$('#add_medicamentoRow').prop('disabled', true);
+		$('#remove_medicamentoRow').prop('disabled', true);
+
+	}else if ($('select[name=tipo_consulta]').val() == 'Urgencias'){
+		$('#urgenciasDetail').css("display", "block");
+		$('#especialidad').css("display", "none");
+		$('#guardarConsulta').css("display", "flex");			
+		$('#add_medicamentoRow').prop('disabled', false);
+		$('#remove_medicamentoRow').prop('disabled', false);
+			$.ajax({
+	        	type: "POST",
+                url: 'includes/urgencias.php',
+                dataType: 'html',
+           		success: function(response) {
+                	$("#urgenciasDetail").html(response);
+                }
+            });
+	}else{		
+		var consult_selected = $('select[name=tipo_consulta]').val();
+	    $.ajax({    //create an ajax request to display.php
+	        type: "POST",
+	        url: "includes/consulta_esp.php",
+	        data: {consult_selected:consult_selected},             
+	        dataType: "html",   //expect html to be returned                
+	        success: function(response){                    
+	        	$("#especialidadSelect").html(response); 
+	        }
+	    });
 	}
-   $("#tipo_consulta").change(function(data) {
-      if ($('select[name=tipo_consulta]').val() == 'noSelection'){
-		var o = '<option id="no">No ha seleccionado un tipo de consulta</option>';
+});
+
+$("#tipo_consulta").change(function(data) {
+	if ($('select[name=tipo_consulta]').val() == 'Urgencias'){
+		$('#urgenciasDetail').css("display", "block");
+		$('#especialidad').css("display", "none");
+		$('#guardarConsulta').css("display", "flex");			
+		$('#add_medicamentoRow').prop('disabled', false);
+		$('#remove_medicamentoRow').prop('disabled', false);
+		$.ajax({
+	       	type: "POST",
+            url: 'includes/urgencias.php',
+            dataType: 'html',
+        	success: function(response) {
+              	$("#urgenciasDetail").html(response);
+            }
+        });
+	}else if ($('select[name=tipo_consulta]').val() == 'noSelection'){
+		$('#urgenciasDetail').css("display", "none");
+		$('#especialidad').css("display", "flex");
+		var o = '<option id="sinTP" selected>No ha seleccionado un tipo de consulta</option>';
 		$('#especialidadSelect option').remove();
 		$('#especialidadSelect').append(o);
-	}else {
+		$('#guardarConsulta').css("display", "none");	
+		$('#add_medicamentoRow').prop('disabled', true);
+		$('#remove_medicamentoRow').prop('disabled', true);
+	}else {		
+		$('#urgenciasDetail').css("display", "none");
+		$('#especialidad').css("display", "flex");
+		$('#add_medicamentoRow').prop('disabled', false);
+		$('#remove_medicamentoRow').prop('disabled', false);
+		$('#guardarConsulta').css("display", "flex");
 		var consult_selected = $(this).val();               
-      		$.ajax({    //create an ajax request to display.php
-        	type: "POST",
-        	data: {consult_selected:consult_selected},
-        	url: "includes/consulta.php",             
-        	dataType: "html",   //expect html to be returned                
-        	success: function(response){                    
-            $("#especialidadSelect").html(response); 
-            //alert(response);
-        	}
-    	});
+      	$.ajax({    //create an ajax request to display.php
+	      	type: "POST",
+	       	url: "includes/consulta_esp.php", 
+	       	data: {consult_selected:consult_selected},            
+	       	dataType: "html",   //expect html to be returned                
+	       	success: function(response){                    
+	           	$("#especialidadSelect").html(response); 
+	       	}
+	    });
+      	$('#guardarConsulta').css("visibility", "visible");
 	}
 });
 
 $("#add_medicamentoRow").click(function(data) {
-	var so = '<div class="medicSelect"></div>';
-	$('#medicamentoContainer').append(so);
-
+	var select;
    	$.ajax({    //create an ajax request to display.php
         type: "POST",
         url: "includes/medicamento.php",             
         dataType: "html",   //expect html to be returned                
-        success: function(response){                    
-        $(".medicSelect").html(response); 
-           //alert(response);
+        success: function(response){ 
+        	$("#medicamentoContainer").append('<li class="medicSelect mb-2">'+response+'</li>'); 
+  	       	$('.otro_medicamNtipo').css("display", "none");             
+		    $("select.medicamentosSelect").change(function() {
+		    	select = $(this);
+		    	var selectedMedicamento = $(this).val();
+				if (selectedMedicamento == '0') {
+					$(this).removeClass('getMedic');
+					select.parents(".medicSelect").find('.otro_medicamento').addClass('getMedic');
+					select.parents(".medicSelect").find('.medicaTipoContainer').text('Otro ¿Cuál?');
+					select.parents(".medicSelect").find('.otro_medicamNtipo').css("display", "flex");
+				} else {
+					select.parents(".medicSelect").find('.otro_medicamento').removeClass('getMedic');
+					$(this).addClass('getMedic');
+					select.parents(".medicSelect").find('.otro_medicamNtipo').css("display", "none");
+		    		medic_selected = select.children(":selected").attr("id");
+		    		$.ajax({
+			        	type: "POST",
+			        	url: "includes/medicamento_tipo.php",
+			        	data: {medic_selected:medic_selected},
+			        	success: function (data) {
+							select.siblings('.medicaTipoContainer').text(data);
+			        	}
+	        		});
+				}
+				
+			});
+			
         }
-    });
+	});		
 });
 
 
 $("#remove_medicamentoRow").click(function(data) {
-	$('.medicSelect').remove();
+	$('.medicSelect').last().remove();
 });
 
-$( "#num_consulta_vacio" ).dialog({
-	autoOpen: false
-});	 
-$( "#canti_medic_vacio" ).dialog({
+$( "#no_medic_selected" ).dialog({
 	autoOpen: false
 }); 
 $( "#consulta_duplicada" ).dialog({
 	autoOpen: false
-});	
-var optConsultaVacio = {
+});
+$( "#otro_medic_vacio" ).dialog({
+	autoOpen: false
+});
+$( "#otro_tipomedic_vacio" ).dialog({
+	autoOpen: false
+}); 
+var optTipoMedicVacio = {
         autoOpen: false,
         modal: true,
-        title: 'Ingresa una cantidad valida'
-};
+        title: 'Ingresa una tipo de medicamento'
+};	 
 var optMedicVacio = {
         autoOpen: false,
         modal: true,
-        title: 'Ingresa una cantidad valida'
+        title: 'Ingresa una medicamento'
+};	
+var optNoMedicaSelected = {
+        autoOpen: false,
+        modal: true,
+        title: 'Selecciona un medicamento'
 };
 
 var optConsultaDuplicado = {
@@ -70,85 +156,179 @@ var optConsultaDuplicado = {
 };
 
 
-function add_consultRow() {
+function createConsultRow() {
 
-	if($('#numConsult').val() == '' || $('#numConsult').val() == '0'){         
-	    $( "#num_consulta_vacio" ).dialog(optConsultaVacio).dialog("open");
-   	//}else if ($('#cantidadMedicamento').val() == '' || $('#cantidadMedicamento').val() == '0'){
-		//$( "#canti_medic_vacio" ).dialog(optMedicVacio).dialog("open");
-   	}else {
    		var tipo_consultasSelector = document.getElementById("tipo_consulta");
 		var tipo_consultaSelected = tipo_consultasSelector[tipo_consultasSelector.selectedIndex].value;
-		var especialidadesSelector = document.getElementById("especialidadSelect");
-		var especialidadSelected = especialidadesSelector[especialidadesSelector.selectedIndex].value;
-		var set_numConsultas=document.getElementById("numConsult").value;
+
+		if(tipo_consultaSelected == 'Urgencias'){
+			var especialidadSelected = 'Sin especialidad';
+			var num_hrs_urgen = document.getElementById("horasUrg").value;
+			var requHospiSelector = document.getElementById("hospitalizacion");	
+			var requHospiSelected = requHospiSelector[requHospiSelector.selectedIndex].value;
+			var num_dias_Hospi = document.getElementById("num_dias").value;
+		}else{
+			var especialidadesSelector = document.getElementById("especialidadSelect");
+			var especialidadSelected = especialidadesSelector[especialidadesSelector.selectedIndex].value;
+			var causa_urgen = "";
+			var num_hrs_urgen = "";
+			var requHospiSelector = "";	
+			var requHospiSelected = "";
+			var num_dias_Hospi = "";
+		}
+		var causa_urgen = document.getElementById("causaConsulta").value;
 		var set_fecha=document.getElementById("fecha_consulta").value;
+
 		var ConsultaTable=document.getElementById("consultas_table");
 		var ConsultaTable_len=(ConsultaTable.rows.length);
-		var ConsultaRow = ConsultaTable.insertRow(ConsultaTable_len).outerHTML="<tr id='rowConsulta"+ConsultaTable_len+"'>" +
-			"<td style='padding: 1px;' id='tipo_cofnsult_row"+ConsultaTable_len+"' value='"+tipo_consultaSelected+"'>"+tipo_consultaSelected+"<input class='hiddenInpt"+ConsultaTable_len+"' name='tipo_consultaSet[]' value='"+tipo_consultaSelected+"' hidden></td>" +
-			
-			"<td style='padding: 1px;' id='especialidad_row"+ConsultaTable_len+"' value='"+especialidadSelected+"'>"+especialidadSelected+"<input class='hiddenInpt"+ConsultaTable_len+"' name='especialidadesSet[]' value='"+especialidadSelected+"' hidden></td>"+
-			
-			"<td style='padding: 1px;'  id='numConsultas_row"+ConsultaTable_len+"' value='"+set_numConsultas+"'>"+set_numConsultas+"<input class='hiddenInpt"+ConsultaTable_len+"' id='numConsulta_input"+ConsultaTable_len+"' name='numConsultasSet[]' value='"+set_numConsultas+"' hidden></td>" +	
-			
-			"<td style='padding: 1px;'  id='fechaConsulta_row"+ConsultaTable_len+"' value='"+set_fecha+"'>"+set_fecha+"<input id='fechaConsulta_input"+ ConsultaTable_len+"' class='hiddenInpt"+ConsultaTable_len+"' name='fechaConsultaSet[]' value='"+set_fecha+"' hidden></td>" +
-			
-			"<td style='padding: 1px;' id='medicamento_row"+ConsultaTable_len+"'><div id='totalMedics"+ConsultaTable_len+"'><input id='medicam_input"+ ConsultaTable_len+"' class='hiddenInpt"+ConsultaTable_len+"' name='medicamentoSet[]' value='medicams"+ConsultaTable_len+"' hidden></div></td>" +		
-			
-			"<td style='padding: 1px;' id='cantidadMedicam_row"+ConsultaTable_len+"'></td>" +	
+		var consultaIdentifier = btoa(tipo_consultaSelected+especialidadSelected+ConsultaTable_len);
 
-			"<td style='padding: 1px;' id='medida_row"+ConsultaTable_len+"'></td>"+
+		var ConsultaRow = ConsultaTable.insertRow(ConsultaTable_len).outerHTML="<tr class='especialidadRow center-aligned' id='rowConsulta"+ConsultaTable_len+"'>" +
+			"<td style='padding: 1px;' class='center-aligned num_consultas' id='numConsultas_row"+ConsultaTable_len+"'>"+ConsultaTable_len+"<input id='numConsulta_input"+ConsultaTable_len+"' name='numConsultasSet[]' value='"+ConsultaTable_len+"' hidden></td>" +	
+
+			"<td style='padding: 1px;' class='center-aligned' id='tipo_consult_row"+ConsultaTable_len+"'>"+tipo_consultaSelected+"<input name='consultasIdsSet[]' value='"+consultaIdentifier+"' hidden> "+
+			"<input id='tipo_consultaSet' name='tipo_consultaSet[]' value='"+tipo_consultaSelected+"' hidden>	</td>" +
+			
+			"<td style='padding: 1px;'  id='especialidad_row"+ConsultaTable_len+"'>"+especialidadSelected+"<input  id='hiddenInpt"+ConsultaTable_len+"' name='especialidadesSet[]' value='"+especialidadSelected+"' hidden></td>"+
+				
+			"<td style='padding: 1px;'  id='fechaConsulta_row"+ConsultaTable_len+"'>"+set_fecha+"<input id='fechaConsulta_input"+ ConsultaTable_len+"'name='fechaConsultaSet[]' value='"+set_fecha+"' hidden></td>" +
+		
+				
+			"<td style='padding: 1px;'  id='causaUrgen_row"+ConsultaTable_len+"'>"+causa_urgen+"<input id='causaUrgen_input"+ ConsultaTable_len+"'name='causaUrgenSet[]' value='"+causa_urgen+"' hidden></td>" +			
+
+			"<td style='padding: 1px;'  id='num_hrsUrgen_row"+ConsultaTable_len+"'>"+num_hrs_urgen+"<input id='num_hrsUrgen_input"+ ConsultaTable_len+"'name='num_hrsUrgenSet[]' value='"+num_hrs_urgen+"' hidden></td>" +			
+
+			"<td style='padding: 1px;'  id='requHospi_row"+ConsultaTable_len+"'>"+requHospiSelected+"<input  id='requHospi_input"+ConsultaTable_len+"' name='requHospiSet[]' value='"+requHospiSelected+"' hidden></td>"+
+
+			"<td style='padding: 1px;'  id='diasHospi_row"+ConsultaTable_len+"'>"+num_dias_Hospi+"<input id='diasHospi_input"+ ConsultaTable_len+"'name='diasHospiSet[]' value='"+num_dias_Hospi+"' hidden></td>" +			
+
+
+			"<td style='padding: 1px;' id='medicamento_row"+ConsultaTable_len+"'></td>" +		
+			
+			"<td style='padding: 1px;' id='cantidadMedicam_row"+ConsultaTable_len+"'></td>" +
+
+			"<td style='padding: 1px;' id='medida_row"+ConsultaTable_len+"'></td>"+	
+			
+			"<td style='padding: 1px;' id='porHoras_row"+ConsultaTable_len+"'></td>" +
+			
+			"<td style='padding: 1px;' id='duranteDias_row"+ConsultaTable_len+"'></td>" +
 			
 			"<td style='padding: 1px;'>"+
 					"<div class='row'><input type='button' id='edit_button"+ConsultaTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_ConsultaRow("+ConsultaTable_len+")' hidden>" +
 					"<input type='button' id='save_button"+ConsultaTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_ConsultaRow("+ConsultaTable_len+")' style='display: none;'>" +
-					"<input type='button' value='Borrar' class='delete btn btn-danger ml-4' onclick='delete_ConsultaRow("+ConsultaTable_len+")'></div>"+
+					"<input type='button' value='Borrar' class='delete btn btn-danger ml-4' onclick='delete_Consulta("+ConsultaTable_len+")'></div>"+
 				"</td>" +"</tr>";
 
-		var selectedConsulta=document.getElementById("especialidad_row"+ConsultaTable_len);
-		var selected_ConsultaData=selectedConsulta.innerHTML;
-		var Consultaagregado = $('#consultas_table td:contains('+selected_ConsultaData+')').length;
+				var medicamentoGet = [];
+				var getMedicamento = $(".getMedic");
+				for (i = 0; i < getMedicamento.length; i++) {
+			      	var medicmto = $(getMedicamento[i]).val();
+					if (medicmto.trim().length == 0) {
+						$( "#otro_medic_vacio" ).dialog(optMedicVacio).dialog("open");
+			            return false;
+			        }else{
+						medicamentoGet.push(medicmto);
+					}
+			    }   
+				var medicamento = medicamentoGet.map(function(elem) {
+		   			return elem;				
+				});
+				if ($('.otro_medicamento').hasClass('getMedic')){
+					var tipo_medicGet = [];
+					var getTipoMedicamento = $('input[name^=otro_tipo_medica]');
+					for (i = 0; i < getTipoMedicamento.length; i++) {
+				      	var tipoMedicmto = $(getTipoMedicamento[i]).val();
+						if (tipoMedicmto.trim().length == 0) {
+							$( "#otro_tipomedic_vacio" ).dialog(optTipoMedicVacio).dialog("open");
+				            return false;
+				        }else{ 
+							tipo_medicGet.push(tipoMedicmto);
+						}
+				    }   
+					var tipo_medicamento = tipo_medicGet.map(function(elem) {
+			   			return elem;				
+					});
+					$(".otro_tipo_medica").val('');
+					jQuery.each( tipo_medicamento, function( i, val ) {
+					  	$( "#medicamento_row"+ConsultaTable_len+"" ).append( '<input name="tipo_medicamentos'+consultaIdentifier+'[]" value="'+ val +'" id="tipo_medic'+i+'" hidden>' );
+					});
+				}
+				var cantidad = $('input[name^=cantidadMedicamento]').map(function(idx, elem) {
+				    return $(elem).val();
+				}).get();
 
-	   	  var medicamento = $('select[name^=medicamentosSelect]').map(function(idx, elem) {
-		    return $(elem).val();
-		  }).get();
+				var medida = $('select[name^=medidasMedicamento]').map(function(idx, elem) {
+				    return $(elem).val();
+				}).get();
 
-		  var cantidad = $('input[name^=cantidadMedicamento]').map(function(idx, elem) {
-		    return $(elem).val();
-		  }).get();
+				var cadahoras = $('input.cantidadHoras').map(function(idx, elem) {
+				    return $(elem).val();
+				}).get();
 
-		   var medida = $('select[name^=medidasMedicamento]').map(function(idx, elem) {
-		    return $(elem).val();
-		  }).get();
+				var durantedias = $('input.cantidadDias').map(function(idx, elem) {
+				    return $(elem).val();
+				}).get();
+				
+				if(tipo_consultaSelected == 'Urgencias'){
+					$("#horasUrg").val('');
+					$("#num_dias").val('');
+				}
+				$("#otro_medicamento").val('');
+				$("#causaConsulta").val('');
+				$('.medicSelect').remove();	
 
-
-		  jQuery.each( medicamento, function( i, val ) {
-		  	$( "#totalMedics"+ConsultaTable_len+"" ).append( '<input name="medicamentos[]" value="'+ val +'" id="medicamento'+i+'">' );
-		 	});
-		 
-		 jQuery.each( cantidad, function( i, val ) {
-		  	$( "#cantidadMedicam_row"+ConsultaTable_len+"" ).append( '<input name="cantidades[]" value="'+ val +'" id="cantidad'+i+'">');
-		 	});
-		 
-		  jQuery.each( medida, function( i, val) {
-		  	$( "#medida_row"+ConsultaTable_len+"" ).append( '<input name="medidas[]" value="'+ val +'" id="medida'+i+'">');
-		 	});
-
-		if (Consultaagregado > 1) {
-			$('#agregarConsulta').prop('disabled', true); 	
-	    	$( "#consulta_duplicada" ).dialog(optConsultaDuplicado).dialog( "open" );		            	
-		}
-		$('.medicSelect').remove();
-	}
-		  event.preventDefault(); 
-
+				jQuery.each( medicamento, function( i, val ) {
+				  	$( "#medicamento_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="medicamentos'+consultaIdentifier+'[]" value="'+ val +'" id="medicamento'+i+'" hidden>' );
+				});
+				 
+				jQuery.each( cantidad, function( i, val ) {
+				  	$( "#cantidadMedicam_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="cantidades'+consultaIdentifier+'[]" value="'+ val +'" id="cantidad'+i+'" hidden>');
+				});
+				 
+				jQuery.each( medida, function( i, val) {
+				 	$( "#medida_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="medidas'+ consultaIdentifier+'[]" value="'+ val +'" id="medida'+i+'" hidden>');
+				});
+				 
+				jQuery.each( cadahoras, function( i, val ) {
+				  	$( "#porHoras_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="porHoras'+consultaIdentifier+'[]" value="'+ val +'" id="horas'+i+'" hidden>');
+				});				
+			
+    			jQuery.each( durantedias, function( i, val ) {
+				  	$( "#duranteDias_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="duranteDias'+consultaIdentifier+'[]" value="'+ val +'" id="dias'+i+'" hidden>');
+				
+				});	
+			    			
+			    
 }
 
-function delete_ConsultaRow(no) {
-	$("#rowConsulta"+no+"").children('td').remove();
-	$("#rowConsulta"+no+"").siblings(".hiddenInpt"+no+"").remove();
-	$('#agregarConsulta').prop('disabled', false);
+function add_Consulta() {
+	//var consultasTotal = $('#consultas_table tr').length;
+	var medicamentosSelected = $(".medicamentosSelect");
+	for (i = 0; i < medicamentosSelected.length; i++) {
+        if ($(medicamentosSelected[i]).val() == '-Selecciona un medicamento-') {
+			$( "#no_medic_selected" ).dialog(optNoMedicaSelected).dialog("open");
+            return false;
+        }        
+    } 
+	if($(".especialidadRow").length && $("#sinTP").length){
+		var especialidadSelector = document.getElementById("especialidadSelect");
+		var valor = especialidadSelector[especialidadSelector.selectedIndex].value;
+		var Consultaagregado = $('#consultas_table td:contains('+valor+')').length;
+		if (Consultaagregado > 0 ){	
+			$( "#consulta_duplicada" ).dialog(optConsultaDuplicado).dialog( "open" );
+		return false;
+		}else { 
+			createConsultRow();			
+		}  					
+	 }else{
+		createConsultRow();	
+	 }
+}
+
+
+function delete_Consulta(no) {
+	$(".delete").parents("#rowConsulta"+no+"").remove();
+	$('#guardarConsulta').prop('disabled', false);
 	$('.medicSelect').remove();	
 
 }
