@@ -12,13 +12,13 @@
         <header id="header" class="jumbotron">
             <h2>HOJA DE RECOLECCIÓN DE DATOS EXPEDIENTES</h2>
             <a href="includes/datos_recabados_excel.php">Descargar archivo Excel Datos Pacientes</a>
-        </header><!-- /header -->
+            </header><!-- /header -->
             <main class="container" id="main-content">
                 <form action="includes/datos_recabados.php" id="form" method="post">
                     <div class="main-form-group">
                         <?php
                         $codigoMenu= generarHospitales($consulHosp);
-                        echo $codigoMenu;                        
+                        echo $codigoMenu;
                         ?>
                     </div>
                     <hr>
@@ -37,7 +37,7 @@
                             <div class="col-sm-3">
                                 <?php
                                 echo '<input type="text" name="iniciales_paciente" class="form-control" placeholder="Ingrese sus iniciales" pattern="[a-zA-Z]*" >';
-                                ?>                                
+                                ?>
                                 <div id="iniciales_null" class="warning">
                                     <p>Las inciales no pueden contener menos de 3 letras</p>
                                 </div>
@@ -59,16 +59,9 @@
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" for="edades"><strong>2.4.</strong> Edad</label>
-                            <div class="col-sm-2">
-                                <select class="form-control" id="edades" name="edades">
-                                    <?php
-                                    $edad='1 a 11 meses';
-                                    echo '<option value="0">'.$edad.'</option>';
-                                    for ($edad=1;$edad<=120;$edad++){
-                                    echo'<option value="'.$edad.'">'.$edad.' años </option>';
-                                    }
-                                    ?>
-                                </select>
+                            <div class="col-sm-2" style="display: inline-flex;">
+                                <input class="form-control" id="edades" type="number" name="edades" min="0.1" step="0.1">
+                                <label class="col-sm-3 col-form-label" for="edades">Años</label>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -93,7 +86,7 @@
                                 echo '<div class="form-check form-check-inline">';
                                     echo '<input class="form-check-input" type="radio" name="residencia" value="'.$residencia.'">'.$key;
                                 echo '</div>';?>
-                                <?php endforeach; ?>                                
+                                <?php endforeach; ?>
                                 <div id="residencia_null" class="warning">
                                     <p>No has elegido un lugar de residencia</p>
                                 </div>
@@ -106,45 +99,40 @@
                         <label class="col-sm-2 col-form-label" for="inicio_consultas">De</label>
                         <div class="col-sm-2">
                             <input id="inicio_consultas" class="form-control" type="date" name="inicio_consultas" max="" onchange="setInicioPeriodLimit()">
-                        </div>                        
+                        </div>
                         <label class="col-sm-2 col-form-label" for="fin_consultas">a</label>
                         <div class="col-sm-2">
                             <input id="fin_consultas" class="form-control" type="date" name="fin_consultas" min="" onchange="setFinPeriodLimit()">
                         </div>
                     </div>
-                        <label for="dias_perdidos"><strong>9.</strong> Días perdidos</label>
-                        <?php foreach( $dias_perdidos as $index => $dia_perdido): ?>
-                        <?php echo '<div class="input-group">
-                            <div class="col-sm-5">
-                                <label class="col-form-label">'.$index.'</label>
-                            </div>
-                            <div class="col-sm-2">
-                                <input type="number" min="0" step="1" class="form-control" name="'. $dia_perdido .'" placeholder="Cantidad" >
-                            </div>
-                        </div>';
-                        ?>
-                        <?php endforeach; ?>                        
+                    <label for="dias_perdidos"><strong>9.</strong> Días perdidos</label>
+                    <?php foreach( $dias_perdidos as $index => $dia_perdido): ?>
+                    <?php echo '<div class="input-group">
+                        <div class="col-sm-5">
+                            <label class="col-form-label">'.$index.'</label>
+                        </div>
+                        <div class="col-sm-2">
+                            <input type="number" min="0" step="1" class="form-control" name="'. $dia_perdido .'" placeholder="Cantidad" >
+                        </div>
+                    </div>';
+                    ?>
+                    <?php endforeach; ?>
                     <hr>
                     <label for="clasificacion_enfermedad"><strong>3.</strong> CLASIFICACIÓN DE LA ENFERMEDAD</label>
                     <div class="form-group">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" for="anios_evol"><strong>3.1.</strong> Años de evolución</label>
-                            <div class="col-sm-2">
-                                <select class="form-control" id="anios_evol" name="anios_evol">
-                                    <?php
-                                    $anio_evol='1 a 11 meses';
-                                    echo '<option value="0">'.$anio_evol.'</option>';
-                                    for ($anio_evol=1;$anio_evol<=120;$anio_evol++){
-                                    echo'<option value="'.$anio_evol.'">'.$anio_evol.' años </option>';
-                                    }
-                                    ?>
-                                </select>
+                            <div class="col-sm-2" style="display: inline-flex;">
+                                <input class="form-control" id="anios_evol" type="number" name="anios_evol" min="0.1" step="0.1">
+                                <label class="col-sm-3 col-form-label" for="edades">Años</label>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-4 col-form-label" for="DA"><strong>3.2.</strong> Inicialmente fue considerado una DA</label>
                             <div class="col-sm-3">
                                 <select class="form-control" id="grados_da" name="grados_da">
+                                    <option value="noOption" selected="true">-Selecciona una opación-</option>}
+                                    option 
                                     <?php foreach( $grados_da as $id_grado_da => $grado_da): ?>
                                     <?php echo '<option value="'.$id_grado_da.'">'. $grado_da.'</option>';
                                     ?>
@@ -192,10 +180,10 @@
                         <div class="row onerow">
                             <label class="col-sm-6 col-form-label" for="prurito"><strong>7.</strong> ¿El paciente presenta prurito que afecte el sueño y/o calidad de vida?</label>
                             <div class="radios col-sm-4">
-                               <div class="radios col-sm-4">
+                                <div class="radios col-sm-4">
                                     <div class="form-check form-check-inline">
-                                       <input class="form-check-input" type="radio" name="prurito" value="SI">SI
-                                       <input class="form-check-input ml-3" type="radio" name="prurito" value="NO" checked>NO
+                                        <input class="form-check-input" type="radio" name="prurito" value="SI">SI
+                                        <input class="form-check-input ml-3" type="radio" name="prurito" value="NO" checked>NO
                                     </div>
                                 </div>
                             </div>
@@ -205,16 +193,16 @@
                             <label class="col-sm-6 col-form-label" for="depresion"><strong>8.</strong> ¿Su paciente presenta depresion?</label>
                             <div class="radios col-sm-4">
                                 <div class="form-check form-check-inline">
-                                   <input class="form-check-input" type="radio" name="depresion" value="SI">SI
-                                   <input class="form-check-input ml-3" type="radio" name="depresion" value="NO" checked>NO
+                                    <input class="form-check-input" type="radio" name="depresion" value="SI">SI
+                                    <input class="form-check-input ml-3" type="radio" name="depresion" value="NO" checked>NO
                                 </div>
                             </div>
-                        </div>                        
-                        <hr>                        
+                        </div>
+                        <hr>
                         <div class="guardar">
                             <input type="submit"  id="saveAll" class="btn btn-success" style="text-align:center" name="submitTodo" value="Guardar Encuesta">
                         </div>
-                            
+                        
                     </form>
                     
                 </main>
