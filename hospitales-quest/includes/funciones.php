@@ -24,7 +24,7 @@
 										while ($fila = @mysqli_fetch_array($datos)) {
 											$id = $fila["idhospitales"];
 											$name = utf8_encode($fila["hospital_nombre"]);
-											$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+											$template = $template.'<option value="'.$name.'">'.$name.'</option>'."\n";
 										}
 										$template = $template."</select>\n";
 					return $template;
@@ -42,18 +42,21 @@
 	$generos = array('0' => '-Selecciona un genero-', '1' => 'Mujer', '2' => 'Hombre');
 
 
-	function generarOcupaciones($datos, $selectName, $labelName) {
+	function generarOcupaciones($datos) {
 
-		$template = '<label class="col-sm-3 col-form-label" for="ocupacion"><strong>2.5. </strong>' . $labelName. '</label>'. "\n";
+		$template = '<label class="col-sm-3 col-form-label" for="ocupacion"><strong>2.5. </strong>Ocupación</label>'. "\n";
 		$template = $template. '
-			<div class="col-sm-4">
-				<select class="form-control ocupacion" id="'.$selectName.'" name="'.$selectName.'">' . "\n";
+			<div class="col-sm-3">
+				<select class="form-control ocupacion" id="ocupaciones" name="ocupaciones">' . "\n";
 				while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idocupaciones"];
 					$name = utf8_encode($fila["ocupacion_tipo"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
 				}
-				$template = $template.'<option value="0">Otra</option></select></div>';
+				$template = $template.'<option value="0">Otra</option></select>
+                            </div><div class="col-sm-5">
+                                <input type="text" class="form-control" id="otra_ocupacion" name="otra_ocupacion" placeholder="Especifique" hidden="true">
+                            </div>';
 		return $template;
 	}
 	if ($con = conectarBase($bd_host, $bd_user, $bd_pass, $bd_name)) {
@@ -67,15 +70,15 @@
 	}
 
 		// Manda select de ocupacion
-	function generarEscolaridades($datos, $selectName, $labelName) {
-		$template = '<label class="col-sm-3 col-form-label" for="escolaridad"><strong>2.6. </strong>' . $labelName. '</label>'. "\n";
+	function generarEscolaridades($datos) {
+		$template = '<label class="col-sm-3 col-form-label" for="escolaridad"><strong>2.6. </strong>Escolaridad</label>'. "\n";
 		$template = $template. '
 			<div class="col-sm-4">
-				<select class="form-control escolaridad" id="'.$selectName.'" name="'.$selectName.'">' . "\n";
+				<select class="form-control escolaridad" id="Escolaridad" name="escolaridad">' . "\n";
 					while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idescolaridad"];
 					$name = utf8_encode($fila["escolaridad_nivel"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
 					}
 					$template = $template.'<option value="0">Otra ¿Cuál?</option></select></div>';
 		return $template;
@@ -98,18 +101,21 @@
 	// name de las herramientas
 	$herramientas = array('3.3.1. SCORAD' => 'scorad_calculo', '3.3.2 Solo porcentaje de superficie corporal afectada (BSA)' =>'bsa_calculo', '3.3.3. EASI' => 'easi_calculo', '3.3.4. IGA' => 'iga_calculo','3.3.5. No utiliza 3.3.5.1. Calculo de IGA modificado' => 'iga_modificado_calculo');
 
-
+	// Manda select de tipo de consultas
+	$tipo_consultas_estudios = array('Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta','Urgencias' => 'Urgencias','Hospitalización' => 'Hospitalización');
 	////////
 	function generarEstuLab($datos) {
-		$template = '<label for="estudios_laboratorio" class="col-sm-3"><strong>4.1. </strong>ESTUDIOS DE LABORATORIO</label>'. "\n";
-		$template = $template. '<div class="col-sm-6">
-					<select class="form-control" id="estudiosLab" name="estudiosSelect">' . "\n";
+		$template ='<div class="col-sm-7">
+					<select class="form-control" id="estudiosLabSelect" name="estudiosLabSelect">' . "\n";
 					while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idestudios_laboratorio_tipos"];
 					$name = utf8_encode($fila["tipo_estudio_laboratorio"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
 					}
-				$template = $template.'</select></div>';
+				$template = $template.'<option value="0">Otros ¿Cuáles?</option></select>
+					<div class="mt-2">
+						<input type="text" class="form-control" id="otro_estudio_lab" name="otro_estudio_lab" placeholder="Especifique" hidden="true">
+					</div></div>';
 		return $template;
 	}
 	if ($con = conectarBase($bd_host, $bd_user, $bd_pass, $bd_name)) {
@@ -123,21 +129,23 @@
 	}
 
 	//////
-	function generarProced($datos) {
-		$template = '<label for="procedimientos" class="col-sm-3"><strong>4.2. </strong>PROCEDIMIENTOS</label>'. "\n";
-		$template = $template. '<div class="col-sm-6">
-					<select class="form-control" id="procedimientos" name="procedSelect">' . "\n";
+	function generarPruebAlerg($datos) {
+		$template = '<div class="col-sm-7">
+					<select class="form-control" id="pruebAlergSelect" name="pruebAlergSelect">' . "\n";
 					while ($fila = @mysqli_fetch_array($datos)) {
-					$id = $fila["idprocedimientos_tipos"];
-					$name = utf8_encode($fila["tipo_procedimiento"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$id = $fila["idpruebas_alergia_tipos"];
+					$name = utf8_encode($fila["tipo_prueba_alergia"]);
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
 					}
-				$template = $template.'</select></div>';
+				$template = $template.'<option value="0">Otras ¿Cuáles?</option></select>
+					<div class="mt-2">
+						<input type="text" class="form-control" id="otra_prueb_alerg" name="otra_prueb_alerg" placeholder="Especifique" hidden="true">
+					</div></div>';
 		return $template;
 	}
 	if ($con = conectarBase($bd_host, $bd_user, $bd_pass, $bd_name)) {
-		$procedimientos = "SELECT * FROM procedimientos_tipos";
-		if($consulProced = consultar($con, $procedimientos)) {
+		$pruebas_alergia = "SELECT * FROM pruebas_alergia_tipos";
+		if($consulPruebAlerg = consultar($con, $pruebas_alergia)) {
 		}else{
 		echo "<p>No se encontraron datos</p>";
 		}
@@ -147,15 +155,17 @@
 
 	////	
 	function generarEstuGab($datos) {
-		$template = '<label for="estudios_gabinete" class="col-sm-3"><strong>4.3. </strong>ESTUDIOS DE GABINETE</label>'. "\n";
-		$template = $template. '<div class="col-sm-6">
+		$template = '<div class="col-sm-7">
 					<select class="form-control" id="estudiosGabSelect" name="estudiosGabSelect">' . "\n";
 					while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idtipo_estudio_gabinete"];
 					$name = utf8_encode($fila["tipo_estudio_gabinete"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>'."\n";
 					}
-				$template = $template.'</select></div>';
+				$template = $template.'<option value="0">Otros ¿Cuáles?</option></select>
+					<div class="mt-2">
+						<input type="text" class="form-control" id="otro_estudio_gab" name="otro_estudio_gab" placeholder="Especifique" hidden="true">
+					</div></div>';
 		return $template;
 	}
 	if ($con = conectarBase($bd_host, $bd_user, $bd_pass, $bd_name)) {
@@ -168,10 +178,33 @@
 		echo "<p>Servicio interrumpido</p>";
 	}
 
-
+//////
+	function generarProced($datos) {
+		$template = '<div class="col-sm-7">
+					<select class="form-control" id="procedSelect" name="procedSelect">' . "\n";
+					while ($fila = @mysqli_fetch_array($datos)) {
+					$id = $fila["idprocedimientos_tipos"];
+					$name = utf8_encode($fila["tipo_procedimiento"]);
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>'."\n";
+					}
+				$template = $template.'<option value="0">Otros ¿Cuáles?</option></select>
+					<div class="mt-2">
+						<input type="text" class="form-control" id="otro_proced" name="otro_proced" placeholder="Especifique" hidden="true">
+					</div></div>';
+		return $template;
+	}
+	if ($con = conectarBase($bd_host, $bd_user, $bd_pass, $bd_name)) {
+		$procedimientos = "SELECT * FROM procedimientos_tipos";
+		if($consulProced = consultar($con, $procedimientos)) {
+		}else{
+		echo "<p>No se encontraron datos</p>";
+		}
+	}else{
+		echo "<p>Servicio interrumpido</p>";
+	}
 	/////CONSULTAS
 	// Manda select de tipo de consultas
-	$tipo_consultas = array( 'noSelection'=>'Selecciona un tipo de consulta','Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta');
+	$tipo_consultas = array( 'noSelection'=>'-Selecciona un tipo de consulta-','Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta','Urgencias' => 'Urgencias', 'Hospitalización' => 'Hospitalización');
 
 	////////	
 	
@@ -183,7 +216,7 @@
 					$id = $fila["idespecialidad_tipo"];
 					$name = utf8_encode($fila["tipo_especialidad"]);
 					$tipo = utf8_encode($fila["tipo_consulta"]);
-					$template = $template.'<option value="'.$name.'" id="'.$id.'">'.$name.'</option>'."\n";
+					$template = $template.'<option value="'.$name.'">'.$name.'</option>'."\n";
 					}
 				$template = $template.'</select></div><div class="col-sm-3">
 										<input id="tipo_consulta_especialidad" value="'.$tipo.'"  type="text" class="form-control" hidden>
@@ -203,16 +236,11 @@
 	}else{
 		echo "<p>Servicio interrumpido</p>";
 	}
-	
-	
-	// Manda radio prurito
-	$optsPrurito = array( 'SI' => 'SI', 'NO' => 'NO');
-	$optsDepre = array( 'SI' => 'SI', 'NO' => 'NO');
+
 
 	// name de las herramientas
-	$dias_perdidos = array('9.1. Días de consulta' => 'dias_consul', '9.2. Días escolares' =>'dias_escol', '9.3. Días del acompañante' => 'dias_acomp', '9.4. Días asistencia urgencias' => 'dias_urgen','9.5. Días de incapacidad' => 'dias_incap');
+	$dias_perdidos = array('9.1. Días escolares' =>'dias_escol', '9.2. Días del acompañante' => 'dias_acomp', '9.3. Días de incapacidad' => 'dias_incap');
 
-	$optsHospi = array( 'SI' => 'SI', 'NO' => 'NO');
 
 ?>
 
