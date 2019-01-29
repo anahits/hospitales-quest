@@ -1,7 +1,7 @@
 <?php
-	$bd_host  = 'sumawebdesarrollo.com';
-	$bd_user = 'sumawebd_anahi';
-	$bd_pass = '-6+;xo,L4.{o';
+	$bd_host  = 'localhost';
+	$bd_user = 'root';
+	$bd_pass = '';
 	$bd_name = 'sumawebd_cuestionario';
 
 	// 1. Create a database connection

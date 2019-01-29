@@ -24,8 +24,8 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 	$id_genero = filtrado($_POST["generos"]);
 		$genero = $generos[$id_genero];
 	$id_edad = filtrado($_POST["edades"]);
-		if ($id_edad == 0) {
-			$edad ='1 a 11 meses';
+		if ($id_edad == '') {
+			$edad ='';
 		}else if ($id_edad == 1) {
 			$edad = $id_edad . ' año';
 		}else {
@@ -46,16 +46,20 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 	//CLASIFICACIÓN DE LA ENFERMEDAD
 
 	$id_anio_evol = filtrado($_POST["anios_evol"]);
-		if ($id_anio_evol == 0) {
-			$anio_evol ='1 a 11 meses';
-		}else if ($id_edad == 1) {
+		if ($id_anio_evol == '') {
+			$anio_evol ='';
+		}else if ($id_anio_evol == 1) {
 			$anio_evol = $id_anio_evol . ' año';
 		}else {
 			$anio_evol = $id_anio_evol . ' años';
 		}
 
 	$id_grado_da = filtrado($_POST["grados_da"]);
-		$grado_da = $grados_da[$id_grado_da];
+		if ($id_grado_da == 'noOption') {
+			$grado_da ='';
+		}else {			
+			$grado_da = $grados_da[$id_grado_da];
+		}
 
 	//Herramientas utilizadas para su clasificación:
 	$scorad = $_POST["scorad_calculo"];
