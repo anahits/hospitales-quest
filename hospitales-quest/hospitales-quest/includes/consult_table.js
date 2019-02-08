@@ -1,6 +1,8 @@
 $(document).ready(function(data){
+	$('#tipo_consulta').val('noSelection').trigger('change');
+
 	if ($('select[name=tipo_consulta]').val() == 'noSelection'){
-		var o = '<option id="sinTP" selected>No ha seleccionado un tipo de consulta</option>';
+		var o = '<option id="sinTP" value="noSelected" selected>No ha seleccionado un tipo de consulta</option>';
 		$('#especialidadSelect').append(o);
 		$('#guardarConsulta').css("display", "none");
 		$('#add_medicamentoRow').prop('disabled', true);
@@ -192,27 +194,44 @@ var optConsultaDuplicado = {
         title: 'Consulta duplicada'
 };
 
+function getConsultasPacnte() {
+	var idP = $('#pacienteId').val();
+	var action = 'consultas';
+	$.ajax({
+	    type: "POST",
+	    url: "includes/estudios.php",
+	    data:{idP:idP,action:action},
+	    dataType: "json",	
+	    success : function(data){ 
+			createConsultRow(data.data);
+		}
+	});
+}
+if ($('#pacienteId').val() !== '') {
+	getConsultasPacnte();
+}
 
-function createConsultRow(medicamento = false,tipo_medicamento = false) {
+
+function createConsultRow(data = false,medicamento = false,tipo_medicamento = false) {
 
    		var tipo_consultasSelector = document.getElementById("tipo_consulta");
 		var tipo_consultaSelected = tipo_consultasSelector[tipo_consultasSelector.selectedIndex].value;
-
+		
 		if(tipo_consultaSelected == 'Urgencias'){
 			var especialidadSelected = 'Sin especialidad';
 			var num_hrs_urgen = document.getElementById("horasUrg").value;
 			var requHospiSelector = document.getElementById("hospitalizacion");	
 			var requHospiSelected = requHospiSelector[requHospiSelector.selectedIndex].value;
 			var num_dias_Hospi = document.getElementById("num_dias").value;
-		}else{
+		}else if (tipo_consultaSelected !== 'Urgencias') {
 			var especialidadesSelector = document.getElementById("especialidadSelect");
-			var especialidadSelected = especialidadesSelector[especialidadesSelector.selectedIndex].value;
-			var causa_urgen = "";
+			 var especialidadSelected = especialidadesSelector[especialidadesSelector.selectedIndex].value;
 			var num_hrs_urgen = "";
 			var requHospiSelector = "";	
 			var requHospiSelected = "";
 			var num_dias_Hospi = "";
 		}
+
 		var causa_urgen = document.getElementById("causaConsulta").value;
 		var set_fecha=document.getElementById("fecha_consulta").value;
 
@@ -220,49 +239,168 @@ function createConsultRow(medicamento = false,tipo_medicamento = false) {
 		var rows = ConsultaTable.getElementsByTagName('tr');
 			if(rows.length > 1) {
 				var lastrow = rows[rows.length - 1];
-				console.log(lastrow);
 				var ConsultaTable_len=(parseInt(lastrow.dataset.numconsulta) + 1);
 			} else {
 				var ConsultaTable_len=1;
 			}		
-		var consultaIdentifier = btoa(tipo_consultaSelected+especialidadSelected+ConsultaTable_len);
-
-		var ConsultaRow = ConsultaTable.insertRow(rows.length).outerHTML="<tr class='especialidadRow center-aligned' data-numconsulta='"+ConsultaTable_len+"' id='rowConsulta"+ConsultaTable_len+"'>" +
-			"<td style='padding: 1px;' class='center-aligned num_consultas' id='numConsultas_row"+ConsultaTable_len+"'>"+ConsultaTable_len+"<input id='numConsulta_input"+ConsultaTable_len+"' name='numConsultasSet[]' value='"+ConsultaTable_len+"' hidden></td>" +	
-
-			"<td style='padding: 1px;' class='center-aligned' id='tipo_consult_row"+ConsultaTable_len+"'>"+tipo_consultaSelected+"<input name='consultasIdsSet[]' value='"+consultaIdentifier+"' hidden> "+
-			"<input id='tipo_consultaSet' name='tipo_consultaSet[]' value='"+tipo_consultaSelected+"' hidden>	</td>" +
-			
-			"<td style='padding: 1px;'  id='especialidad_row"+ConsultaTable_len+"'>"+especialidadSelected+"<input  id='hiddenInpt"+ConsultaTable_len+"' name='especialidadesSet[]' value='"+especialidadSelected+"' hidden></td>"+
-				
-			"<td style='padding: 1px;'  id='fechaConsulta_row"+ConsultaTable_len+"'>"+set_fecha+"<input id='fechaConsulta_input"+ ConsultaTable_len+"'name='fechaConsultaSet[]' value='"+set_fecha+"' hidden></td>" +
 		
+		if(data !== false){	
+
+			var datos = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = [];	    	  
+			    obj[item.num_consulta].push(item.tipo_consulta);
+			    obj[item.num_consulta].push(item.especialidad);	    
+			    obj[item.num_consulta].push(item.fecha);
+			    obj[item.num_consulta].push(item.causa_urgencia);
+			    obj[item.num_consulta].push(item.num_horas_urgencias);
+			    obj[item.num_consulta].push(item.hospitaliza_urgencias);
+			    obj[item.num_consulta].push(item.dias_hospital_urgen);
+			    return obj;
+			}, {});
+		
+			var medicamento = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.medicamento);
+			    return obj;
+			}, {});
+
+			var tipo_medicamento = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.tipo_medicamento);
+			    return obj;
+			}, {});
+
+			var cantidad = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.cantidad_medicamento);
+			    return obj;
+			}, {});
+
+			var medida = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.medida_medicamento);
+			    return obj;
+			}, {});
+
+			var cadahoras = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.cada_horas);
+			    return obj;
+			}, {});
+
+			var durantedias = data.reduce(function (obj, item) {
+			    obj[item.num_consulta] = obj[item.num_consulta] || [];
+			    obj[item.num_consulta].push(item.durante_dias);
+			    return obj;
+			}, {});
+
+			$.each( datos, function( key, value ) {	
+	
+				var consultaIdentifier = btoa(value[0]+value[1]+ConsultaTable_len);
+
+				var ConsultaRow = ConsultaTable.insertRow(rows.length).outerHTML="<tr class='especialidadRow center-aligned' data-numconsulta='"+ConsultaTable_len+"' id='rowConsulta"+ConsultaTable_len+"'>" +
+					"<td style='padding: 1px;' class='center-aligned num_consultas' id='numConsultas_row"+ConsultaTable_len+"'>"+key+"<input id='numConsulta_input"+ConsultaTable_len+"' name='numConsultasSet[]' value='"+key+"' hidden></td>" +	
+
+					"<td style='padding: 1px;' class='center-aligned' id='tipo_consult_row"+ConsultaTable_len+"'>"+value[0]+"<input name='consultasIdsSet[]' value='"+consultaIdentifier+"' hidden> "+
+					"<input id='tipo_consultaSet' name='tipo_consultaSet[]' value='"+value[0]+"' hidden>	</td>" +
+					
+					"<td style='padding: 1px;'  id='especialidad_row"+ConsultaTable_len+"'>"+value[1]+"<input  id='hiddenInpt"+ConsultaTable_len+"' name='especialidadesSet[]' value='"+value[1]+"' hidden></td>"+
+						
+					"<td style='padding: 1px;'  id='fechaConsulta_row"+ConsultaTable_len+"'>"+value[2]+"<input id='fechaConsulta_input"+ ConsultaTable_len+"'name='fechaConsultaSet[]' value='"+value[2]+"' hidden></td>" +
 				
-			"<td style='padding: 1px;'  id='causaUrgen_row"+ConsultaTable_len+"'>"+causa_urgen+"<input id='causaUrgen_input"+ ConsultaTable_len+"'name='causaUrgenSet[]' value='"+causa_urgen+"' hidden></td>" +			
+						
+					"<td style='padding: 1px;'  id='causaUrgen_row"+ConsultaTable_len+"'>"+value[3]+"<input id='causaUrgen_input"+ ConsultaTable_len+"'name='causaUrgenSet[]' value='"+value[3]+"' hidden></td>" +			
 
-			"<td style='padding: 1px;'  id='num_hrsUrgen_row"+ConsultaTable_len+"'>"+num_hrs_urgen+"<input id='num_hrsUrgen_input"+ ConsultaTable_len+"'name='num_hrsUrgenSet[]' value='"+num_hrs_urgen+"' hidden></td>" +			
+					"<td style='padding: 1px;'  id='num_hrsUrgen_row"+ConsultaTable_len+"'>"+value[4]+"<input id='num_hrsUrgen_input"+ ConsultaTable_len+"'name='num_hrsUrgenSet[]' value='"+value[4]+"' hidden></td>" +			
 
-			"<td style='padding: 1px;'  id='requHospi_row"+ConsultaTable_len+"'>"+requHospiSelected+"<input  id='requHospi_input"+ConsultaTable_len+"' name='requHospiSet[]' value='"+requHospiSelected+"' hidden></td>"+
+					"<td style='padding: 1px;'  id='requHospi_row"+ConsultaTable_len+"'>"+value[5]+"<input  id='requHospi_input"+ConsultaTable_len+"' name='requHospiSet[]' value='"+value[5]+"' hidden></td>"+
 
-			"<td style='padding: 1px;'  id='diasHospi_row"+ConsultaTable_len+"'>"+num_dias_Hospi+"<input id='diasHospi_input"+ ConsultaTable_len+"'name='diasHospiSet[]' value='"+num_dias_Hospi+"' hidden></td>" +			
+					"<td style='padding: 1px;'  id='diasHospi_row"+ConsultaTable_len+"'>"+value[6]+"<input id='diasHospi_input"+ ConsultaTable_len+"'name='diasHospiSet[]' value='"+value[6]+"' hidden></td>" +			
 
+					"<td style='padding: 1px;' id='medicamento_row"+ConsultaTable_len+"'></td>" +		
+					
+					"<td style='padding: 1px;' id='cantidadMedicam_row"+ConsultaTable_len+"'></td>" +
 
-			"<td style='padding: 1px;' id='medicamento_row"+ConsultaTable_len+"'></td>" +		
+					"<td style='padding: 1px;' id='medida_row"+ConsultaTable_len+"'></td>"+	
+					
+					"<td style='padding: 1px;' id='porHoras_row"+ConsultaTable_len+"'></td>" +
+					
+					"<td style='padding: 1px;' id='duranteDias_row"+ConsultaTable_len+"'></td>" +
+					
+					"<td style='padding: 1px;'>"+
+							/*"<div class='row'><input type='button' id='edit_button"+ConsultaTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_ConsultaRow("+ConsultaTable_len+")' hidden>" +
+							"<input type='button' id='save_button"+ConsultaTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_ConsultaRow("+ConsultaTable_len+")' style='display: none;'>" +*/
+							"<input type='button' id='delete_button"+ConsultaTable_len+"' value='Borrar' class='delete btn btn-danger ml-4' onclick='delete_Consulta("+ConsultaTable_len+")'></div>"+
+						"</td>" +"</tr>";
+				
+					jQuery.each( medicamento[key], function( i, val ) {
+					  	$( "#medicamento_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="medicamentos'+consultaIdentifier+'[]" value="'+ val +'" id="medicamento'+i+'" hidden>' );
+					});
+					 
+					jQuery.each( tipo_medicamento[key], function( i, val ) {
+					  	$( "#medicamento_row"+ConsultaTable_len+"" ).append( '<input name="tipo_medicamentos'+consultaIdentifier+'[]" value="'+ val +'" id="tipo_medic'+i+'" hidden>' );
+					});
+
+					jQuery.each( cantidad[key], function( i, val ) {
+					  	$( "#cantidadMedicam_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="cantidades'+consultaIdentifier+'[]" value="'+ val +'" id="cantidad'+i+'" hidden>');
+					});
+					 
+					jQuery.each( medida[key], function( i, val) {
+					 	$( "#medida_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="medidas'+ consultaIdentifier+'[]" value="'+ val +'" id="medida'+i+'" hidden>');
+					});
+					 
+					jQuery.each( cadahoras[key], function( i, val ) {
+					  	$( "#porHoras_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="porHoras'+consultaIdentifier+'[]" value="'+ val +'" id="horas'+i+'" hidden>');
+					});				
+				
+	    			jQuery.each( durantedias[key], function( i, val ) {
+					  	$( "#duranteDias_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="duranteDias'+consultaIdentifier+'[]" value="'+ val +'" id="dias'+i+'" hidden>');
+					
+					});
+
+				ConsultaTable_len++;
+			});
+			data = false;
+		} else {
+
+			var consultaIdentifier = btoa(tipo_consultaSelected+especialidadSelected+ConsultaTable_len);
+
+			var ConsultaRow = ConsultaTable.insertRow(rows.length).outerHTML="<tr class='especialidadRow center-aligned' data-numconsulta='"+ConsultaTable_len+"' id='rowConsulta"+ConsultaTable_len+"'>" +
+				"<td style='padding: 1px;' class='center-aligned num_consultas' id='numConsultas_row"+ConsultaTable_len+"'>"+ConsultaTable_len+"<input id='numConsulta_input"+ConsultaTable_len+"' name='numConsultasSet[]' value='"+ConsultaTable_len+"' hidden></td>" +	
+
+				"<td style='padding: 1px;' class='center-aligned' id='tipo_consult_row"+ConsultaTable_len+"'>"+tipo_consultaSelected+"<input name='consultasIdsSet[]' value='"+consultaIdentifier+"' hidden> "+
+				"<input id='tipo_consultaSet' name='tipo_consultaSet[]' value='"+tipo_consultaSelected+"' hidden>	</td>" +
+				
+				"<td style='padding: 1px;'  id='especialidad_row"+ConsultaTable_len+"'>"+especialidadSelected+"<input  id='hiddenInpt"+ConsultaTable_len+"' name='especialidadesSet[]' value='"+especialidadSelected+"' hidden></td>"+
+					
+				"<td style='padding: 1px;'  id='fechaConsulta_row"+ConsultaTable_len+"'>"+set_fecha+"<input id='fechaConsulta_input"+ ConsultaTable_len+"'name='fechaConsultaSet[]' value='"+set_fecha+"' hidden></td>" +
 			
-			"<td style='padding: 1px;' id='cantidadMedicam_row"+ConsultaTable_len+"'></td>" +
+					
+				"<td style='padding: 1px;'  id='causaUrgen_row"+ConsultaTable_len+"'>"+causa_urgen+"<input id='causaUrgen_input"+ ConsultaTable_len+"'name='causaUrgenSet[]' value='"+causa_urgen+"' hidden></td>" +			
 
-			"<td style='padding: 1px;' id='medida_row"+ConsultaTable_len+"'></td>"+	
-			
-			"<td style='padding: 1px;' id='porHoras_row"+ConsultaTable_len+"'></td>" +
-			
-			"<td style='padding: 1px;' id='duranteDias_row"+ConsultaTable_len+"'></td>" +
-			
-			"<td style='padding: 1px;'>"+
-					"<div class='row'><input type='button' id='edit_button"+ConsultaTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_ConsultaRow("+ConsultaTable_len+")' hidden>" +
-					"<input type='button' id='save_button"+ConsultaTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_ConsultaRow("+ConsultaTable_len+")' style='display: none;'>" +
-					"<input type='button' id='delete_button"+ConsultaTable_len+"' value='Borrar' class='delete btn btn-danger ml-4' onclick='delete_Consulta("+ConsultaTable_len+")'></div>"+
-				"</td>" +"</tr>";
-			
+				"<td style='padding: 1px;'  id='num_hrsUrgen_row"+ConsultaTable_len+"'>"+num_hrs_urgen+"<input id='num_hrsUrgen_input"+ ConsultaTable_len+"'name='num_hrsUrgenSet[]' value='"+num_hrs_urgen+"' hidden></td>" +			
+
+				"<td style='padding: 1px;'  id='requHospi_row"+ConsultaTable_len+"'>"+requHospiSelected+"<input  id='requHospi_input"+ConsultaTable_len+"' name='requHospiSet[]' value='"+requHospiSelected+"' hidden></td>"+
+
+				"<td style='padding: 1px;'  id='diasHospi_row"+ConsultaTable_len+"'>"+num_dias_Hospi+"<input id='diasHospi_input"+ ConsultaTable_len+"'name='diasHospiSet[]' value='"+num_dias_Hospi+"' hidden></td>" +			
+
+
+				"<td style='padding: 1px;' id='medicamento_row"+ConsultaTable_len+"'></td>" +		
+				
+				"<td style='padding: 1px;' id='cantidadMedicam_row"+ConsultaTable_len+"'></td>" +
+
+				"<td style='padding: 1px;' id='medida_row"+ConsultaTable_len+"'></td>"+	
+				
+				"<td style='padding: 1px;' id='porHoras_row"+ConsultaTable_len+"'></td>" +
+				
+				"<td style='padding: 1px;' id='duranteDias_row"+ConsultaTable_len+"'></td>" +
+				
+				"<td style='padding: 1px;'>"+
+						/*"<div class='row'><input type='button' id='edit_button"+ConsultaTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_ConsultaRow("+ConsultaTable_len+")' hidden>" +
+						"<input type='button' id='save_button"+ConsultaTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_ConsultaRow("+ConsultaTable_len+")' style='display: none;'>" +*/
+						"<input type='button' id='delete_button"+ConsultaTable_len+"' value='Borrar' class='delete btn btn-danger ml-4' onclick='delete_Consulta("+ConsultaTable_len+")'></div>"+
+					"</td>" +"</tr>";
+				
 				var cantidad = $('input[name^=cantidadMedicamento]').map(function(idx, elem) {
 				    return $(elem).val();
 				}).get();
@@ -313,7 +451,8 @@ function createConsultRow(medicamento = false,tipo_medicamento = false) {
 				  	$( "#duranteDias_row"+ConsultaTable_len+"" ).append( '<p>'+ val +'</p><input name="duranteDias'+consultaIdentifier+'[]" value="'+ val +'" id="dias'+i+'" hidden>');
 				
 				});	
-			    			
+	}
+    			
 			    
 }
 
@@ -365,10 +504,10 @@ function add_Consulta() {
 			$( "#consulta_duplicada" ).dialog(optConsultaDuplicado).dialog( "open" );
 		return false;
 		}else { 
-			createConsultRow(medicamento,tipo_medicamento);			
+			createConsultRow(false,medicamento,tipo_medicamento);			
 		}  					
 	 }else{
-		createConsultRow(medicamento,tipo_medicamento);	
+		createConsultRow(false,medicamento,tipo_medicamento);	
 	 }
 }
 

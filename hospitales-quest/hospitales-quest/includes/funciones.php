@@ -10,13 +10,14 @@
 		}
 	}
 	function consultar($conexion, $consulta){
-		if (!$datos = mysqli_query($conexion, $consulta) or mysqli_num_rows($datos)<1){
+		if (!$datos = @mysqli_query($conexion, $consulta) or @mysqli_num_rows($datos)<1){
 			return false;
 		}else{
 			return $datos;
 		}
 	}
-	function generarHospitales($datos) {
+	function generarHospitales($datos,$hospital) {
+		$hospital =  utf8_encode($hospital);
 		$template = '<label for="hospitales"><strong>1. </strong>HOSPITALES</label>'. "\n";
 		$template = $template. '<div class="form-group">
 									<div class="col-sm-7">
@@ -24,7 +25,7 @@
 										while ($fila = @mysqli_fetch_array($datos)) {
 											$id = $fila["idhospitales"];
 											$name = utf8_encode($fila["hospital_nombre"]);
-											$template = $template.'<option value="'.$name.'">'.$name.'</option>'."\n";
+											$template = $template.'<option value="'.$name.'"'; ($name == @$hospital) ? $template = $template .'selected' : $template = $template .''; $template = $template .'>'.$name.'</option>'."\n";
 										}
 										$template = $template."</select>\n";
 					return $template;
@@ -42,8 +43,8 @@
 	$generos = array('0' => '-Selecciona un genero-', '1' => 'Mujer', '2' => 'Hombre');
 
 
-	function generarOcupaciones($datos) {
-
+	function generarOcupaciones($datos,$ocupacion) {
+		$ocupacion =  utf8_encode($ocupacion);
 		$template = '<label class="col-sm-3 col-form-label" for="ocupacion"><strong>2.5. </strong>Ocupación</label>'. "\n";
 		$template = $template. '
 			<div class="col-sm-3">
@@ -51,7 +52,7 @@
 				while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idocupaciones"];
 					$name = utf8_encode($fila["ocupacion_tipo"]);
-					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
+					$template = $template.'<option value="'.$name.'"'; ($name == @$ocupacion) ? $template = $template .'selected' : $template = $template .''; $template = $template .'>'.$name.'</option>'."\n";
 				}
 				$template = $template.'<option value="0">Otra</option></select>
                             </div><div class="col-sm-5">
@@ -70,7 +71,8 @@
 	}
 
 		// Manda select de ocupacion
-	function generarEscolaridades($datos) {
+	function generarEscolaridades($datos,$escolaridad) {
+		$escolaridad =  utf8_encode($escolaridad);
 		$template = '<label class="col-sm-3 col-form-label" for="escolaridad"><strong>2.6. </strong>Escolaridad</label>'. "\n";
 		$template = $template. '
 			<div class="col-sm-4">
@@ -78,7 +80,7 @@
 					while ($fila = @mysqli_fetch_array($datos)) {
 					$id = $fila["idescolaridad"];
 					$name = utf8_encode($fila["escolaridad_nivel"]);
-					$template = $template.'<option value="'.$name.'">'.$name.'</option>';
+					$template = $template.'<option value="'.$name.'"'; ($name == @$escolaridad) ? $template = $template .'selected' : $template = $template .''; $template = $template .'>'.$name.'</option>'."\n";
 					}
 					$template = $template.'<option value="0">Otra ¿Cuál?</option></select></div>';
 		return $template;
@@ -92,16 +94,16 @@
 	}else{
 		echo "<p>Servicio interrumpido</p>";
 	}
-	// Manda select de residencias
+	// Manda select options de residencias
 	$residencias = array( 'local' => 'Local', 'foraneo' => 'Foraneo');
 
-	// Manda select de genero
+	// Manda select options de estados
+	$estados = array( 'null' => '-Selecciona un Estado','Aguascalientes' => 'Aguascalientes','Baja California' => 'Baja California','Baja California Sur' => 'Baja California Sur','Campeche' => 'Campeche','Chiapas' => 'Chiapas','Chihuahua' => 'Chihuahua','Coahuila' => 'Coahuila','Colima' => 'Colima','Distrito Federal' => 'Distrito Federal','Durango' => 'Durango','Estado de México' => 'Estado de México','Guanajuato' => 'Guanajuato','Guerrero' => 'Guerrero','Hidalgo' => 'Hidalgo','Jalisco' => 'Jalisco','Michoacán' => 'Michoacán','Morelos' => 'Morelos','Nayarit' => 'Nayarit','Nuevo León' => 'Nuevo León','Oaxaca' => 'Oaxaca','Puebla' => 'Puebla','Querétaro' => 'Querétaro','Quintana Roo' => 'Quintana Roo','San Luis Potosí' => 'San Luis Potosí','Sinaloa' => 'Sinaloa','Sonora' => 'Sonora','Tabasco' => 'Tabasco','Tamaulipas' => 'Tamaulipas','Tlaxcala' => 'Tlaxcala','Veracruz' => 'Veracruz','Yucatán' => 'Yucatán','Zacatecas' => 'Zacatecas');
+
+	// Manda select options de genero
 	$grados_da = array('0' => 'Moderada', '1' => 'Grave', '2' => 'Sin información');
 
-	// name de las herramientas
-	$herramientas = array('3.3.1. SCORAD' => 'scorad_calculo', '3.3.2 Solo porcentaje de superficie corporal afectada (BSA)' =>'bsa_calculo', '3.3.3. EASI' => 'easi_calculo', '3.3.4. IGA' => 'iga_calculo','3.3.5. No utiliza 3.3.5.1. Calculo de IGA modificado' => 'iga_modificado_calculo');
-
-	// Manda select de tipo de consultas
+	// Manda select options de tipo de consultas
 	$tipo_consultas_estudios = array('Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta','Urgencias' => 'Urgencias','Hospitalización' => 'Hospitalización');
 	////////
 	function generarEstuLab($datos) {
@@ -204,7 +206,7 @@
 	}
 	/////CONSULTAS
 	// Manda select de tipo de consultas
-	$tipo_consultas = array( 'noSelection'=>'-Selecciona un tipo de consulta-','Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta','Urgencias' => 'Urgencias', 'Hospitalización' => 'Hospitalización');
+	$tipo_consultas = array( 'Consulta General' => 'Consulta General', 'Interconsulta' => 'Interconsulta','Urgencias' => 'Urgencias', 'Hospitalización' => 'Hospitalización');
 
 	////////	
 	
@@ -236,11 +238,6 @@
 	}else{
 		echo "<p>Servicio interrumpido</p>";
 	}
-
-
-	// name de las herramientas
-	$dias_perdidos = array('9.1. Días escolares' =>'dias_escol', '9.2. Días del acompañante' => 'dias_acomp', '9.3. Días de incapacidad' => 'dias_incap');
-
 
 ?>
 

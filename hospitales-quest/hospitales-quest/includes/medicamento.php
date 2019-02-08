@@ -9,7 +9,7 @@ $result=mysqli_query($con,"SELECT * FROM medicamentos_tipo ORDER BY medicamento 
   echo'<div class="row" style="height: 40px;">
         <div class="listedMedicam row col">
           <label class="col-sm-2 col-form-label" for="medicamento">Medicamento</label>                    
-          <select class="form-control col-sm-4 medicamentosSelect getMedic" name="medicamentosSelect[]">' . "\n";
+          <select class="form-control col-sm-4 medicamentosSelect getMedic" name="medicamentosSelect[]"><option value="noSelection" selected>-Selecciona un medicamento-</option>';
             while ($fila = @mysqli_fetch_assoc($result)) {
               $id = $fila["idmedicamentos_tipo"];
               $medicamento = utf8_encode($fila["medicamento"]);

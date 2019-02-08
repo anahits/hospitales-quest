@@ -2,13 +2,18 @@
 <html lang="es">
 	<head>
 		<?php
-		include("head-contents.php");
-		include("scripts.php");
-		require_once ('bd_conection.php');
-		include("funciones.php");
-		include("config.php");
-		include("querys.php");?>
-		<?php if(isset($_POST["submitTodo"])): ?>
+			include("head-contents.php");
+			include("scripts.php");
+			require_once('bd_conection.php');
+			include("funciones.php");
+			include("config.php");
+			require_once("querys.php");
+			/*if (isset($_POST["submitTodo"])) {
+				require_once("querys.php");
+			}else if (isset($_POST["updateTodo"])){
+				require_once("updateQuerys.php");
+			}*/
+		?>		
 		<meta charset="UTF-8"/>
 		<title>Datos recabados</title>
 	</head>
@@ -36,8 +41,7 @@
 					<p class="col-sm-2">Desde <?php echo $inicio_consultas;?></p>
 					<p class="col-sm-2">hasta <?php echo $fin_consultas;?></p>		 
 				</div>
-			</div>
-			<div class="mb-3 mt-3 ml-4">
+			</div><div class="mb-3 mt-3 ml-4">
 				<h5 class="mt-2">Días perdidos</h5>
 				<div class="mb-3 mt-3 ml-3">
 					<div class="row ml-0">Días de consulta:<strong class="mr-2 ml-3"><?php isset($numMismaConsulta['Interconsulta']) || isset($numMismaConsulta['Consulta General']) ? print $diasConsultaTotal :  print ""; ?></strong></div>
@@ -60,10 +64,9 @@
 					<div class="row ml-0">IGA:<strong class="mr-2 ml-3"><?php !empty($_POST["iga_calculo"]) ? print $iga_calculo : print "";  ?></strong></div>
 					<div class="row ml-0">No utiliza, calculo de IGA modificado:<strong class="mr-2 ml-3"><?php !empty($_POST["iga_modificado_calculo"]) ? print $iga_modificado_calculo : print "";  ?></strong></div>
 				</div>
-			</div>
-
+			</div>						
 			<hr>
-			<h4 class="ml-3">ESTUDIOS</h4>
+			<h4 class="ml-3">ESTUDIOS</h4>		
 			<div class="mb-3 mt-3 ml-4">
 				Estudios de laboratorio:
 				<div class="row ml-0">
@@ -205,15 +208,11 @@
 			<div class="row ml-0">Cantidad de exacerbaciones o brotes que tuvo en el ultimo año:<strong class="mr-2 ml-3"><?php !empty($_POST["exacerbaciones"]) ? print $cantExacerbaciones : print ""; ?></strong></div>
 			<div class="row ml-0">¿El paciente presenta prurito que afecte el sueño y/o calidad de vida?:<strong class="mr-2 ml-3"><?php isset($prurito) ? print $prurito: ""; ?></strong></div>
 			<div class="row ml-0">¿Su paciente presenta depresion?:<strong class="mr-2 ml-3"><?php isset($depresion) ? print $depresion: ""; ?></strong></div>
+
+            <div class="guardar" style="margin-top:20px;">
+				<a href="../index.php?edit=<?php echo $paciente_id; ?>"><button type="button" class="btn btn-info">Editar</button></a>
+			</div>
+
 			<?php //var_dump($_POST);?>
-			<?php endif; ?>
-			<ul>
-				<?php if(isset($errores)){
-				foreach ($errores as $error){
-				echo "<li> $error </li>";
-				}
-				}
-				?>
-			</ul>
 		</main>
 	</body>

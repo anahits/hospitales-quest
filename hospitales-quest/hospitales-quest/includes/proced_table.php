@@ -57,33 +57,62 @@ var optProcedDuplicado = {
         title: 'Procedimiento duplicado'
 };
 
-function createProcedRow(){
-	 if($('#get_cantidad_proced').val() == '' || $('#get_cantidad_proced').val() < 1){         
-	    $( "#num_proced_vacio" ).dialog(optProcedVacio).dialog("open");
-   	}else { 
-		var tipoConsulProcedSelector= document.getElementById('tipoConsulProcedSelect');
-		var tipoConsulProcedSelected = tipoConsulProcedSelector[tipoConsulProcedSelector.selectedIndex].value;
-		var procedSelector = document.getElementById('procedSelect');
-		var Selected = procedSelector[procedSelector.selectedIndex].value;			
-		if (Selected == '0' ){
-			var otroProced =  document.getElementById('otro_proced');
-			var procedSelected = otroProced.value;
-		}else{
-			var procedSelected = procedSelector[procedSelector.selectedIndex].value;
+function getProcedPacnte() {
+	var idP = $('#pacienteId').val();
+	var action = 'procedimientos';
+	$.ajax({
+	    type: "POST",
+	    url: "includes/estudios.php",
+	    data:{idP:idP,action:action},
+	    dataType: "json",	
+	    success : function(data){ 
+			createProcedRow(data.data);
 		}
-		var set_cantidadProced=document.getElementById("get_cantidad_proced").value;
-		
-		var procedTable=document.getElementById("proced_table");
-		var procedTable_len=(procedTable.rows.length);
-		var procedRow = procedTable.insertRow(procedTable_len).outerHTML="<tr id='rowProced"+procedTable_len+"' class='estProcedRow'>" +
-			"<td style='padding: 1px;' id='tipoConsulProcedSelect_row"+procedTable_len+"'>"+tipoConsulProcedSelected+"</td><input name='tipoConsulProced[]' value='"+tipoConsulProcedSelected+"' hidden>"+
-			"<td style='padding: 1px;' id='procedSelect_row"+procedTable_len+"'>"+procedSelected+"</td><input name='procedimientos[]' value='"+procedSelected+"' hidden>"+
-			"<td style='padding: 1px;'  id='cantidadProced_row"+procedTable_len+"'>"+set_cantidadProced+"<input id='cantidadProced_input"+procedTable_len+"' name='cantidadProced[]' value='"+set_cantidadProced+"' hidden></td>" +
-			"<td style='padding: 1px;' >"+
-					"<div class='row'><input type='button' id='edit_button"+procedTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_procedRow("+procedTable_len+")' hidden>" +
-					"<input type='button' id='save_button"+procedTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_procedRow("+procedTable_len+")' style='display: none;'>" +
+	});
+}
+if ($('#pacienteId').val() !== '') {
+	getProcedPacnte();
+}
+
+function createProcedRow(data = false){	 
+	var tipoConsulProcedSelector= document.getElementById('tipoConsulProcedSelect');
+	var tipoConsulProcedSelected = tipoConsulProcedSelector[tipoConsulProcedSelector.selectedIndex].value;
+	var procedSelector = document.getElementById('procedSelect');
+	var Selected = procedSelector[procedSelector.selectedIndex].value;			
+	if (Selected == '0' ){
+		var otroProced =  document.getElementById('otro_proced');
+		var procedSelected = otroProced.value;
+	}else{
+		var procedSelected = procedSelector[procedSelector.selectedIndex].value;
+	}
+	var set_cantidadProced=document.getElementById("get_cantidad_proced").value;	
+	var procedTable=document.getElementById("proced_table");
+	var procedTable_len=(procedTable.rows.length);
+
+	if(data !== false){
+		$.each( data, function( key, value ) {
+			var procedRow = procedTable.insertRow(procedTable_len).outerHTML="<tr id='rowProced"+procedTable_len+"' class='ProcedRow'>" +
+				"<td style='padding: 1px;'>"+value.tipo_consulta+"</td><input name='tipoConsulProced[]' value='"+value.tipo_consulta+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.procedimiento+"</td><input name='procedimientos[]' value='"+value.procedimiento+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.num_proced+"<input name='cantidadProced[]' value='"+value.num_proced+"' hidden></td>" +
+				"<td class='consultaNProced' hidden>"+value.tipo_consulta+value.procedimiento+"</td>"+
+				"<td style='padding: 1px;' >"+
 					"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_Proced("+procedTable_len+")'></div>"+
 				"</td>" +"</tr>";
+			procedTable_len++;
+		});
+		data = false;
+	}else  if($('#get_cantidad_proced').val() == '' || $('#get_cantidad_proced').val() < 1){         
+	    $( "#num_proced_vacio" ).dialog(optProcedVacio).dialog("open");
+   	}else {
+		var procedRow = procedTable.insertRow(procedTable_len).outerHTML="<tr id='rowProced"+procedTable_len+"' class='estProcedRow'>" +
+			"<td style='padding: 1px;'>"+tipoConsulProcedSelected+"</td><input name='tipoConsulProced[]' value='"+tipoConsulProcedSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+procedSelected+"</td><input name='procedimientos[]' value='"+procedSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+set_cantidadProced+"<input name='cantidadProced[]' value='"+set_cantidadProced+"' hidden></td>" +
+				"<td class='consultaNProced' hidden>"+tipoConsulProcedSelected+procedSelected+"</td>"+
+			"<td style='padding: 1px;' >"+
+				"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_Proced("+procedTable_len+")'></div>"+
+			"</td>" +"</tr>";
 	}
 	$('#otro_proced').val('');	
  } 
@@ -99,12 +128,26 @@ function add_Proced() {
 	}else{
 		var procedSelected = procedSelector[procedSelector.selectedIndex].value;
 	}
-	var Consultaagregado = $('#proced_table td:contains('+procedSelected+')').length;
-	var tipoConsultAgregada = $('#proced_table td:contains('+tipoConsulProcedSelected+')').length;
+	function compare(a, b) {
+		    return typeof a === 'string' && typeof b === 'string'
+		        ? a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0
+		        : a === b;
+		}
+		var cYe = $(".consultaNProced");
+		for (i = 0; i < cYe.length; i++) {
+		    if ($(cYe[i]).text().length) {
+   				var iguales = compare($(cYe[i]).text(), tipoConsulProcedSelected+procedSelected);
+				if (iguales == true){
+					$( "#proced_duplicado" ).dialog(optProcedDuplicado).dialog( "open" );
+					return false;
+				}
+			} 
+		}
+	var consultaNProced = $('#proced_table td:contains('+tipoConsulProcedSelected+procedSelected+')').length;
 
 	if (procedSelected !== ""){
 		if($(".estProcedRow").length){
-			if (Consultaagregado > 0 && tipoConsultAgregada > 0 ){
+			if (consultaNProced > 0 ){
 				$( "#proced_duplicado" ).dialog(optProcedDuplicado).dialog( "open" );
 			return false;
 			}else {

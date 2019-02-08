@@ -1,10 +1,8 @@
 <?php
 
-if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submitTodo"]) ||  isset($_POST["updateTodo"])) {
+	(isset($_POST["updateTodo"])) ? $id = $_POST['pacienteId'] : '';
 
-	$mandar = $_POST["submitTodo"];
-	$con =  @mysqli_connect($bd_host, $bd_user, $bd_pass, $bd_name);
-	
 	function filtrado($datos){
 		$datos = trim($datos); // Elimina espacios antes y después de los datos
 		$datos = stripslashes($datos); // Elimina backslashes
@@ -45,6 +43,10 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 
 	($_POST['estados'] !== 'null' )? $estado = filtrado($_POST["estados"]):$estado = null;
 
+	///PERIODO
+    isset($_POST['inicio_consultas']) ? $inicio_consultas = $_POST['inicio_consultas'] : $inicio_consultas = "";
+    isset($_POST['fin_consultas']) ? $fin_consultas = $_POST['fin_consultas'] : $fin_consultas ="";
+
 	//CLASIFICACIÓN DE LA ENFERMEDAD
 
 	$id_anio_evol = filtrado($_POST["anios_evol"]);
@@ -78,7 +80,7 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 	//ESTUDIOS
     isset($_POST['estudiosLab']) ? $estudiosLab = $_POST['estudiosLab'] : $estudiosLab = null;   
     isset($_POST['tipoConsulEstLab']) ? $tipoConsulEstLab = $_POST['tipoConsulEstLab'] : "";
-    isset($_POST['cantidadEstLab']) ? $cantidadEstLab = $_POST['cantidadEstLab'] : "";
+    isset($_POST['cantidadEstLab']) ? $cantidadEstLab = $_POST['cantidadEstLab'] : "";    
 	
 	isset($_POST['pruebAlerg']) ? $pruebsAlerg = $_POST['pruebAlerg'] : $pruebsAlerg = null;   
     isset($_POST['tipoConsulPruebAlerg']) ? $tipoConsulPruebAlerg = $_POST['tipoConsulPruebAlerg'] : "";
@@ -91,10 +93,6 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
     isset($_POST['procedimientos']) ? $procedimientos = $_POST['procedimientos'] : $procedimientos = null;   
     isset($_POST['tipoConsulProced']) ? $tipoConsulProced = $_POST['tipoConsulProced'] : "";
     isset($_POST['cantidadProced']) ? $cantidadProced = $_POST['cantidadProced'] :"";
-	
-	///PERIODO
-    isset($_POST['inicio_consultas']) ? $inicio_consultas = $_POST['inicio_consultas'] : $inicio_consultas = "";
-    isset($_POST['fin_consultas']) ? $fin_consultas = $_POST['fin_consultas'] : $fin_consultas ="";
 	
 	///CONSULTAS
     isset($_POST['numConsultasSet']) ? $numConsultasSet = $_POST['numConsultasSet'] : $numConsultasSet = "";

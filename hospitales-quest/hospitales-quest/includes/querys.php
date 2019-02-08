@@ -1,73 +1,67 @@
 <?php
-$con =  @mysqli_connect($bd_host, $bd_user, $bd_pass, $bd_name);
-mysqli_select_db($con,"sumawebd_cuestionario");
-
-if (!$con){
-	die('Could not connect: ' . mysqli_error());
-}else if (isset($_POST["submitTodo"])){
-	$enviar = $_POST["submitTodo"];
-	if ($enviar) {
+	require_once ('bd_conection.php');
+ 
+	if (isset($_POST["submitTodo"]) || isset($_POST["updateTodo"])){
 	// process form SELECT COUNT(*) FROM datos_pacientes;
-			function existe_ocupacion ($ocupacion){
+			function existe_registro($valor,$tabla,$columna){
 				include("bd_conection.php");
-				$result = @mysqli_query($con, "SELECT * FROM ocupaciones WHERE ocupacion_tipo LIKE '$ocupacion'");
+				$result = @mysqli_query($con, "SELECT * FROM $tabla WHERE $columna LIKE '$valor'");
 				$rowcount=mysqli_num_rows($result);
 				if ($rowcount > 0){	
-					while($ocupacionExist = @mysqli_fetch_assoc($result)) {   
-						return $ocupacionExist['ocupacion_tipo'];
+					while($existeValor = @mysqli_fetch_assoc($result)) {   
+						return $existeValor[$columna];
 					}
-				}else if ($ocupacion !== "") {
-					@mysqli_query($con, "INSERT INTO ocupaciones (ocupacion_tipo) VALUES ('$ocupacion')");			
-					return $ocupacion;
+				}else if ($valor !== "") {
+					@mysqli_query($con, "INSERT INTO $tabla ($columna) VALUES ('$valor')");			
+					return $valor;
 				}
 			}
-			$existe_ocupacion = existe_ocupacion($ocupacion);
-			function existe_escolaridad ($escolaridad){
-				include("bd_conection.php");
-				$result = @mysqli_query($con, "SELECT * FROM escolaridad WHERE escolaridad_nivel LIKE '$escolaridad'");
-				$rowcount=mysqli_num_rows($result);
-				if ($rowcount > 0){	
-					while($escolaridadExist = @mysqli_fetch_assoc($result)) {   
-						return $escolaridadExist['escolaridad_nivel'];
-					}				
-				}else if ($escolaridad !== ""){
-					@mysqli_query($con, "INSERT INTO escolaridad (escolaridad_nivel) VALUES ('$escolaridad')");			
-					return $escolaridad;
-				}
-			}
-			$existe_escolaridad = existe_escolaridad($escolaridad);
+			$existe_ocupacion = existe_registro($valor=utf8_decode($ocupacion), $tabla='ocupaciones', $columna='ocupacion_tipo');
+			$existe_escolaridad = existe_registro($valor=utf8_decode($escolaridad), $tabla='escolaridad', $columna='escolaridad_nivel');			
 
-		if  ($id_genero == '0' ||  !isset($lugar_residencia)){
-			$campoVacio = '<p class="warning mb-0">Sin esta información no se puede almacenar en la Base de Datos</p>';		
-		}else {
-
-			$query = @mysqli_query($con,"INSERT INTO datos_pacientes (hospital_paciente,rfc_paciente,iniciales_paciente, genero_paciente,edad_paciente,paciente_ocupacion,escolaridad_paciente,lugar_residencia_paciente,estado_pais_paciente,inicio_consultas,fin_consultas) VALUES (N'$hospital','$rfc','$iniciales','$genero',N'$edad',N'$existe_ocupacion', N'$existe_escolaridad','$lugar_residencia',N'$estado','$inicio_consultas','$fin_consultas');");			
+			$query = @mysqli_query($con,"INSERT INTO datos_pacientes (hospital_paciente,rfc_paciente,iniciales_paciente, genero_paciente,edad_paciente,paciente_ocupacion,escolaridad_paciente,lugar_residencia_paciente,estado_pais_paciente,inicio_consultas,fin_consultas) VALUES (N'$hospital','$rfc','$iniciales','$genero',N'$edad','$existe_ocupacion','$existe_escolaridad','$lugar_residencia',N'$estado','$inicio_consultas','$fin_consultas');");			
 			$paciente_id = $con->insert_id;
 
 				$query = "INSERT INTO caracterist_enfermedad (id_paciente,canti_exacerb,prurito,depresion,dias_consult_perdidos,dias_escol_perdidos,dias_acomp_perdidos,dias_urgenc_perdidos,dias_incap_perdidos) VALUES ('$paciente_id','$cantExacerbaciones',N'$prurito',N'$depresion','$diasConsultaTotal','$dias_escol','$dias_acomp','$diasUrgenciasTotal','$dias_incap');";
 
+				if (isset($_POST["updateTodo"])){
+					// process form SELECT COUNT(*) FROM datos_pacientes;
+				    $paciente_id = $_POST['pacienteId'];
+				    	
+				    $query = "UPDATE datos_pacientes SET hospital_paciente=N'$hospital',rfc_paciente='$rfc',iniciales_paciente='$iniciales', genero_paciente='$genero',edad_paciente=N'$edad',paciente_ocupacion='$existe_ocupacion',escolaridad_paciente='$existe_escolaridad',lugar_residencia_paciente='$lugar_residencia',estado_pais_paciente='$estado',inicio_consultas='$inicio_consultas',fin_consultas='$fin_consultas' WHERE iddatos_pacientes=$paciente_id;";
+
+					$query .= "UPDATE caracterist_enfermedad SET canti_exacerb='$cantExacerbaciones',prurito=N'$prurito',depresion=N'$depresion',dias_consult_perdidos='$diasConsultaTotal',dias_escol_perdidos='$dias_escol',dias_acomp_perdidos='$dias_acomp',dias_urgenc_perdidos='$diasUrgenciasTotal',dias_incap_perdidos='$dias_incap' WHERE id_paciente=$paciente_id;";
+
+					$query .= "DELETE FROM estudios_laboratorio WHERE id_paciente=$paciente_id;";
+					$query .= "DELETE FROM pruebas_alergia WHERE id_paciente=$paciente_id;";
+					$query .= "DELETE FROM estudios_gabinete WHERE id_paciente=$paciente_id;";
+					$query .= "DELETE FROM procedimientos WHERE id_paciente=$paciente_id;";
+					$query .= "DELETE FROM consultas WHERE id_paciente=$paciente_id;";
+				}
+						
+
 				if($estudiosLab !== null){
 					foreach( $estudiosLab as $index => $estudioLab ) {
-				  		$query .= "INSERT INTO estudios_laboratorio (id_paciente,tipo_consulta,estudios_laboratorio,num_estudios_lab) VALUES('$paciente_id',N'$tipoConsulEstLab[$index]',N'$estudioLab','$cantidadEstLab[$index]');";
-						$query .= @mysqli_query($con,"INSERT INTO estudios_laboratorio_tipos (tipo_estudio_laboratorio) VALUES (N'$estudioLab');");
+						$existe_estudioLab = existe_registro($valor = utf8_decode($estudioLab), $tabla='estudios_laboratorio_tipos', $columna='tipo_estudio_laboratorio');
+				  		$query .= "INSERT INTO estudios_laboratorio (id_paciente,tipo_consulta,estudios_laboratorio,num_estudios_lab) VALUES('$paciente_id',N'$tipoConsulEstLab[$index]','$existe_estudioLab','$cantidadEstLab[$index]');";
 					}
 				}
 				if($pruebsAlerg !== null){ 
 					foreach( $pruebsAlerg as $index => $pruebAlerg ) {
-				  		$query .= "INSERT INTO pruebas_alergia (id_paciente,tipo_consulta,pruebas_alergia,num_prueba_alerg) VALUES('$paciente_id',N'$tipoConsulPruebAlerg[$index]',N'$pruebAlerg','$cantidadpruebAlerg[$index]');";
-						$query .= @mysqli_query($con,"INSERT INTO pruebas_alergia_tipos (tipo_prueba_alergia) VALUES (N'$pruebAlerg');");
+						$existe_pruebAlerg = existe_registro($valor = utf8_decode($pruebAlerg), $tabla='pruebas_alergia_tipos', $columna='tipo_prueba_alergia');
+				  		$query .= "INSERT INTO pruebas_alergia (id_paciente,tipo_consulta,pruebas_alergia,num_prueba_alerg) VALUES('$paciente_id',N'$tipoConsulPruebAlerg[$index]','$existe_pruebAlerg','$cantidadpruebAlerg[$index]');";
 					}	
 				}
 				if($estudiosGab !== null){ 
 					foreach( $estudiosGab as $index => $estudioGab ) {
-					  $query .= "INSERT INTO estudios_gabinete (id_paciente,tipo_consulta,estudios_gabinete,num_estudios_gab) VALUES('$paciente_id',N'$tipoConsulEstGab[$index]',N'$estudioGab','$cantidadEstGab[$index]');";
-						$query .= @mysqli_query($con,"INSERT INTO estudios_gabinete_tipos (tipo_estudio_gabinete) VALUES (N'$estudioGab');");
+						$existe_estudioGab = existe_registro($valor = utf8_decode($estudioGab), $tabla='estudios_gabinete_tipos', $columna='tipo_estudio_gabinete');
+					  	$query .= "INSERT INTO estudios_gabinete (id_paciente,tipo_consulta,estudios_gabinete,num_estudios_gab) VALUES('$paciente_id',N'$tipoConsulEstGab[$index]','$existe_estudioGab','$cantidadEstGab[$index]');";
 					}	
 				}
 				if($procedimientos !== null){ 
 					foreach( $procedimientos as $index => $procedimiento ) {
-				  		$query .=  "INSERT INTO procedimientos (id_paciente,tipo_consulta,procedimiento,num_proced) VALUES('$paciente_id',N'$tipoConsulProced[$index]',N'$procedimiento','$cantidadProced[$index]');";
-						$query .= @mysqli_query($con,"INSERT INTO procedimientos_tipos (tipo_procedimiento) VALUES (N'$procedimiento');");
+						$existe_proced= existe_registro($valor = utf8_decode($procedimiento), $tabla='procedimientos_tipos', $columna='tipo_procedimiento');
+				  		$query .=  "INSERT INTO procedimientos (id_paciente,tipo_consulta,procedimiento,num_proced) VALUES('$paciente_id',N'$tipoConsulProced[$index]','$existe_proced','$cantidadProced[$index]');";
 					}	
 				}
 				if($especialidadesSet !== null && $cantidadConsultas !== null){ 
@@ -82,21 +76,29 @@ if (!$con){
 						}
 					}
 				}
-				if($anio_evol !== '' || $grado_da !== '' || $scorad_calculo !== '' || $bsa_calculo !== '' || $easi_calculo !== '' || $iga_calculo !== '' || $iga_modificado_calculo){ 
+
+				if($anio_evol !== '' || $grado_da !== '' || $scorad_calculo !== '' || $bsa_calculo !== '' || $easi_calculo !== '' || $iga_calculo !== '' || $iga_modificado_calculo) { 
 					$query .= "INSERT INTO clasificacion_enfermedad (id_paciente,anios_evolucion, tipo_da, scorad_calculo, bsa_calculo, easi_calculo, iga_calculo, iga_modificado_calculo) VALUES ('$paciente_id',N'$anio_evol',N'$grado_da','$scorad_calculo','$bsa_calculo','$easi_calculo','$iga_calculo','$iga_modificado_calculo');";
 				}
+				$mensaje = '<div class="alert alert-success" style="text-align: center;">¡Hemos recibido sus datos!</div><br>';
+
+				if (isset($_POST["updateTodo"])){
+					if($anio_evol !== '' || $grado_da !== '' || $scorad_calculo !== '' || $bsa_calculo !== '' || $easi_calculo !== '' || $iga_calculo !== '' || $iga_modificado_calculo) { 
+						$query .= "UPDATE clasificacion_enfermedad SET anios_evolucion=N'$anio_evol', tipo_da=N'$grado_da', scorad_calculo='$scorad_calculo', bsa_calculo='$bsa_calculo', easi_calculo='$easi_calculo', iga_calculo='$iga_calculo', iga_modificado_calculo='$iga_modificado_calculo' WHERE id_paciente=$paciente_id;";
+					}
+					$mensaje = '<div class="alert alert-success" style="text-align: center;">¡Hemos actualizado sus datos!</div><br>';
+				}
+				
 				//var_dump($_POST);
 
 			if (@mysqli_multi_query($con, $query) === TRUE && (@mysqli_errno($con) !== 1062)) {
-				echo '<div class="alert alert-success" style="text-align: center;">¡Hemos recibido sus datos!</div><br>'.$con->error;
+				echo $mensaje.$con->error;
 
 			} else{
 	    		echo "Error: " . $query . "<br>" . $con->error;
 
 			}	
-		}
-   
-   	mysqli_close($con);
+
+    	mysqli_close($con);
 	}
-}
 ?>
