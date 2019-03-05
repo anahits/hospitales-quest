@@ -16,6 +16,7 @@
         $ocupacion = $DP["paciente_ocupacion"];
         $escolaridad = $DP["escolaridad_paciente"];
         $residencia = $DP["lugar_residencia_paciente"];
+        $estado = $DP["estado_pais_paciente"];
         $inicio_consultas =  $DP["inicio_consultas"] !== '0000-00-00' ? 'De '.$DP["inicio_consultas"]:'';
         $fin_consultas =  $DP["fin_consultas"] !== '0000-00-00' ? ' a '.$DP["fin_consultas"]:'';
 
@@ -30,7 +31,7 @@
         
         $codigoPaciente = '#'. str_pad($idPaciente,5,"0",STR_PAD_LEFT);  
 
-        $dataRow = array("CODIGO PACIENTE" => $codigoPaciente, "HOSPITAL" => $hospital, "RFC" => $rfc,"INICIALES PACIENTE" => $iniciales, "GENERO" => $genero, "EDAD" => $edad,utf8_decode("OCUPACIÓN") => $ocupacion, "ESCOLARIDAD" => $escolaridad, "LUGAR DE RESIDENCIA" => $residencia, "PERIODO DE TOMA DE DATOS DE EXPEDIENTES" => $inicio_consultas . $fin_consultas,"CANTIDAD DE EXACERBACIONES O BROTES" => $canti_exacerb,"PRESENTO PRURITO" => $prurito,utf8_decode("PRESENTO DEPRESIÓN") => $depresion,utf8_decode("DÍAS DE CONSULTA PERDIDOS") => $dias_consult_perdidos,utf8_decode("DÍAS ESCOLARES PERDIDOS") => $dias_escol_perdidos,utf8_decode("DÍAS DEL ACOMPAÑANTE") => $dias_acomp_perdidos,utf8_decode("DÍAS ASISTENCIA URGENCIAS") => $dias_urgenc_perdidos,utf8_decode("DÍAS DE INCAPACIDAD") => $dias_incap_perdidos);
+        $dataRow = array("CODIGO PACIENTE" => $codigoPaciente, "HOSPITAL" => $hospital, "RFC" => $rfc,"INICIALES PACIENTE" => $iniciales, "GENERO" => $genero, "EDAD" => $edad,utf8_decode("OCUPACIÓN") => $ocupacion, "ESCOLARIDAD" => $escolaridad, "LUGAR DE RESIDENCIA" => $residencia, "ESTADO" => $estado, "PERIODO DE TOMA DE DATOS DE EXPEDIENTES" => $inicio_consultas . $fin_consultas,"CANTIDAD DE EXACERBACIONES O BROTES" => $canti_exacerb,"PRESENTO PRURITO" => $prurito,utf8_decode("PRESENTO DEPRESIÓN") => $depresion,utf8_decode("DÍAS DE CONSULTA PERDIDOS") => $dias_consult_perdidos,utf8_decode("DÍAS ESCOLARES PERDIDOS") => $dias_escol_perdidos,utf8_decode("DÍAS DEL ACOMPAÑANTE") => $dias_acomp_perdidos,utf8_decode("DÍAS ASISTENCIA URGENCIAS") => $dias_urgenc_perdidos,utf8_decode("DÍAS DE INCAPACIDAD") => $dias_incap_perdidos);
         array_push($data, $dataRow);
       }
 

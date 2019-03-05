@@ -18,7 +18,7 @@
     $tipo_proced_paciente = isset($PR["procedimiento"]) ? $PR["procedimiento"] : '';
     $num_proced = isset($PR["num_proced"]) ? $PR["num_proced"] : '';
        
-    $pacienteProcedtos[$PR["id_paciente"]][$PR["procedimiento"]] = $PR["num_proced"];
+    $pacienteProcedtos[$PR["id_paciente"]][$PR["tipo_consulta"]][$PR["procedimiento"]] = $PR["num_proced"] ;
 
     array_push($proced_tipo , $tipo_proced_paciente);
     array_push($num_procedTotales , $num_proced);
@@ -43,14 +43,19 @@
 
   $totalEst=array_combine($procedTotales, $ceros);     
   foreach ($pacienteProcedtos as $key => $value) {
-    $procedCombinados = array_merge($totalEst, $value); 
-    $pacienteProcedtos[$key] = $procedCombinados;
+    foreach ($value as $k => $v) {
+        $procedCombinados = array_merge($totalEst, $v); 
+        $pacienteProcedtos[$key][$k] = $procedCombinados;
+    }
   }     
 
   foreach ($pacienteProcedtos as $key => &$value) {
     $codigoPaciente = '#'. str_pad($key,5,"0",STR_PAD_LEFT);  
-    $procedsPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$value;
-    array_push($data , $procedsPorPaciente);
+    foreach ($value as $k => $v) {
+      $procedsPorPaciente = array('TIPO DE CONSULTA' => $k)+$v;
+      $procedsPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$procedsPorPaciente;
+      array_push($data , $procedsPorPaciente);
+    }
   }
 
   // Original PHP code by Chirp Internet: www.chirp.com.au

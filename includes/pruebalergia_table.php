@@ -57,10 +57,25 @@ var optpruebAlergDuplicado = {
         title: 'Prueba de alergia duplicada'
 };
 
-function createPruebAlergRow(){
-	if($('#get_cantidad_pruebAlerg').val() == '' || $('#get_cantidad_pruebAlerg').val() < 1){         
-	    $( "#num_pruebAlerg_vacio" ).dialog(optpruebAlergVacio).dialog("open");
-   	}else {   		
+function getPruebAlergPacnte() {
+	var idP = $('#pacienteId').val();
+	var action = 'pruebas_alergia';
+	$.ajax({
+	    type: "POST",
+	    url: "includes/estudios.php",
+	    data:{idP:idP,action:action},
+	    dataType: "json",	
+	    success : function(data){ 
+			createPruebAlergRow(data.data);
+		}
+	});
+}
+if ($('#pacienteId').val() !== '') {
+	getPruebAlergPacnte();
+}
+
+function createPruebAlergRow(data = false){
+
 		var tipoConsulPruebAlergSelector= document.getElementById('tipoConsulPruebAlergSelect');
 		var tipoConsulPruebAlergSelected = tipoConsulPruebAlergSelector[tipoConsulPruebAlergSelector.selectedIndex].value;
 		var pruebAlergSelector = document.getElementById('pruebAlergSelect');
@@ -75,15 +90,30 @@ function createPruebAlergRow(){
 		
 		var pruebAlergTable=document.getElementById("pruebAlerg_table");
 		var pruebAlergTable_len=(pruebAlergTable.rows.length);
-		var pruebAlergRow = pruebAlergTable.insertRow(pruebAlergTable_len).outerHTML="<tr id='rowpruebAlerg"+pruebAlergTable_len+"' class='estPruebAlergRow'>" +
-			"<td style='padding: 1px;' id='tipoConsulPruebAlergSelect_row"+pruebAlergTable_len+"'>"+tipoConsulPruebAlergSelected+"</td><input name='tipoConsulPruebAlerg[]' value='"+tipoConsulPruebAlergSelected+"' hidden>"+
-			"<td style='padding: 1px;' id='pruebAlergSelect_row"+pruebAlergTable_len+"' value='"+pruebAlergSelected+"'>"+pruebAlergSelected+"</td><input name='pruebAlerg[]' value='"+pruebAlergSelected+"' hidden>"+
-			"<td style='padding: 1px;'  id='cantidadpruebAlerg_row"+pruebAlergTable_len+"' value='"+set_cantidadPruebAlerg+"'>"+set_cantidadPruebAlerg+"<input id='cantidadpruebAlerg_input"+pruebAlergTable_len+"' name='cantidadpruebAlerg[]' value='"+set_cantidadPruebAlerg+"' hidden></td>" +
-			"<td style='padding: 1px;' >"+
-					"<div class='row'><input type='button' id='edit_button"+pruebAlergTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_pruebAlergRow("+pruebAlergTable_len+")' hidden>" +
-					"<input type='button' id='save_button"+pruebAlergTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_pruebAlergRow("+pruebAlergTable_len+")' style='display: none;'>" +
+	if(data !== false){
+		$.each( data, function( key, value ) {
+			var pruebAlergRow = pruebAlergTable.insertRow(pruebAlergTable_len).outerHTML="<tr id='rowpruebAlerg"+pruebAlergTable_len+"' class='pruebAlergRow'>" +
+				"<td style='padding: 1px;'>"+value.tipo_consulta+"</td><input name='tipoConsulPruebAlerg[]' value='"+value.tipo_consulta+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.pruebas_alergia+"</td><input name='pruebAlerg[]' value='"+value.pruebas_alergia+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.num_prueba_alerg+"<input name='cantidadpruebAlerg[]' value='"+value.num_prueba_alerg+"' hidden></td>" +
+				"<td class='consultaNPruebAlerg' hidden>"+value.tipo_consulta+value.pruebas_alergia+"</td>"+
+				"<td style='padding: 1px;' >"+
 					"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_pruebAlerg("+pruebAlergTable_len+")'></div>"+
 				"</td>" +"</tr>";
+			pruebAlergTable_len++;
+		});
+		data = false;
+	}else if($('#get_cantidad_pruebAlerg').val() == '' || $('#get_cantidad_pruebAlerg').val() < 1){         
+	    $( "#num_pruebAlerg_vacio" ).dialog(optpruebAlergVacio).dialog("open");
+   	}else {   		
+		var pruebAlergRow = pruebAlergTable.insertRow(pruebAlergTable_len).outerHTML="<tr id='rowpruebAlerg"+pruebAlergTable_len+"' class='pruebAlergRow'>" +
+			"<td style='padding: 1px;'>"+tipoConsulPruebAlergSelected+"</td><input name='tipoConsulPruebAlerg[]' value='"+tipoConsulPruebAlergSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+pruebAlergSelected+"</td><input name='pruebAlerg[]' value='"+pruebAlergSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+set_cantidadPruebAlerg+"<input name='cantidadpruebAlerg[]' value='"+set_cantidadPruebAlerg+"' hidden></td>" +
+			"<td class='consultaNPruebAlerg' hidden>"+value.tipoConsulPruebAlergSelected+value.pruebAlergSelected+"</td>"+
+			"<td style='padding: 1px;' >"+
+					"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_pruebAlerg("+pruebAlergTable_len+")'></div>"+
+			"</td>" +"</tr>";
 	}
 	$('#otra_prueb_alerg').val('');	
  } 
@@ -99,11 +129,26 @@ function add_pruebAlerg() {
 	}else{
 		var pruebAlergSelected = pruebAlergSelector[pruebAlergSelector.selectedIndex].value;
 	}
-	var pruebaAlergAgregada = $('#pruebAlerg_table td:contains('+pruebAlergSelected+')').length;
-	var tipoConsultAgregada = $('#pruebAlerg_table td:contains('+tipoConsulPruebAlergSelected+')').length;
+	function compare(a, b) {
+		    return typeof a === 'string' && typeof b === 'string'
+		        ? a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0
+		        : a === b;
+		}
+		var cYe = $(".consultaNPruebAlerg");
+		for (i = 0; i < cYe.length; i++) {
+		    if ($(cYe[i]).text().length) {
+   				var iguales = compare($(cYe[i]).text(), tipoConsulPruebAlergSelected+pruebAlergSelected);
+				if (iguales == true){
+					$( "#estLab_duplicado" ).dialog(optEstLabDuplicado).dialog( "open" );
+					return false;
+				}
+			} 
+		}
+	var consultaNPruebAlerg = $('#pruebAlerg_table td:contains('+tipoConsulPruebAlergSelected+pruebAlergSelected+')').length;
+
 	if (pruebAlergSelected !== ""){
-		if($(".estPruebAlergRow").length){
-			if (pruebaAlergAgregada > 0 && tipoConsultAgregada > 0){	
+		if($(".pruebAlergRow").length){
+			if (consultaNPruebAlerg > 0){	
 				$( "#pruebAlerg_duplicado" ).dialog(optpruebAlergDuplicado).dialog( "open" );
 			return false;
 			}else { 
@@ -117,6 +162,8 @@ function add_pruebAlerg() {
 	}
 }
 function delete_pruebAlerg(no,) {
+	$("#rowpruebAlerg"+no+"").next('input').remove();
+	$("#rowpruebAlerg"+no+"").next('input').remove();
 	$("#rowpruebAlerg"+no+"").next('input').remove();
 	document.getElementById("rowpruebAlerg"+no+"").outerHTML="";
 	$('#agregarpruebAlerg').prop('disabled', false);

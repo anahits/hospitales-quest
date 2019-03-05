@@ -1,8 +1,8 @@
-<a id="consulta"></a>
 <div class="form-group row">
 	<label class="col-sm-2 col-form-label" for="tipo_consulta"><strong>5.1</strong> Tipo de consulta</label>
 	<div class="col-sm-4">
 		<select class="form-control" id="tipo_consulta" name="tipo_consulta">
+			<option value="noSelection" selected="selected">-Selecciona un tipo de consulta-</option>
 			<?php foreach( $tipo_consultas as $tipo => $tipo_consulta): ?>
 			<?php echo '<option value="'.$tipo.'">'. $tipo_consulta.'</option>';
 			?>
@@ -52,7 +52,7 @@
 </div>
 <div class="form-group row">
 <ul id="medicamentoContainer" class="col-sm-12"></ul>
-<a href="#consulta" style="width: 100%;"><button id="guardarConsulta" style="height: 100%;" class="btn btn-success add col-sm-2" type="button" onclick="add_Consulta();" data-count='0'>Guardar Consulta</button></a>
+<button id="guardarConsulta" style="height: 100%;" class="btn btn-success add col-sm-2" type="button" onclick="add_Consulta();" data-count='0'>Guardar Consulta</button>
 </div>
 <table align='center' cellspacing=2 cellpadding=4 id="consultas_table" border=1 class="table table-bordered table-hover list-group">
 <tr>

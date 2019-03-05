@@ -9,7 +9,7 @@
     $idsPaciente = array();
     $pruebasPacnt = array();  
     $pruebas=array();  
-    $pacienteProceds = array();
+    $pacientePruebas = array();
     $data = array();   
 
   while ($PA = @mysqli_fetch_array($result))
@@ -18,7 +18,7 @@
     $tipo_prueba_paciente = isset($PA["pruebas_alergia"]) ? $PA["pruebas_alergia"] : '';
     $num_pruebas = isset($PA["num_prueba_alerg"]) ? $PA["num_prueba_alerg"] : '';
        
-    $pacienteProceds[$PA["id_paciente"]][$PA["pruebas_alergia"]] = $PA["num_prueba_alerg"];
+    $pacientePruebas[$PA["id_paciente"]][$PA["tipo_consulta"]][$PA["pruebas_alergia"]] = $PA["num_prueba_alerg"];
 
     array_push($prueba_tipo , $tipo_prueba_paciente);
     array_push($num_pruebasTotales , $num_pruebas);
@@ -42,15 +42,20 @@
   }
 
   $totalEst=array_combine($pruebsTotales, $ceros);     
-  foreach ($pacienteProceds as $key => $value) {
-    $pruebasCombinadas = array_merge($totalEst, $value); 
-    $pacienteProceds[$key] = $pruebasCombinadas;
+  foreach ($pacientePruebas as $key => $value) {
+    foreach ($value as $k => $v) {
+        $pruebasCombinadas = array_merge($totalEst, $v); 
+        $pacientePruebas[$key][$k] = $pruebasCombinadas;
+    }
   }     
 
-  foreach ($pacienteProceds as $key => &$value) {
+  foreach ($pacientePruebas as $key => &$value) {
     $codigoPaciente = '#'. str_pad($key,5,"0",STR_PAD_LEFT);  
-    $pruebasPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$value;
-    array_push($data , $pruebasPorPaciente);
+    foreach ($value as $k => $v) {
+      $pruebasPorPaciente = array('TIPO DE CONSULTA' => $k)+$v;
+      $pruebasPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$pruebasPorPaciente;
+      array_push($data , $pruebasPorPaciente);
+    }
   }
 
   // Original PHP code by Chirp Internet: www.chirp.com.au

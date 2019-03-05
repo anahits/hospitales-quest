@@ -18,7 +18,7 @@
     $tipo_est_paciente = isset($EG["estudios_gabinete"]) ? $EG["estudios_gabinete"] : '';
     $num_est = isset($EG["num_estudios_gab"]) ? $EG["num_estudios_gab"] : '';
        
-    $pacienteEstdios[$EG["id_paciente"]][$EG["estudios_gabinete"]] = $EG["num_estudios_gab"];
+    $pacienteEstdios[$EG["id_paciente"]][$EG["tipo_consulta"]][$EG["estudios_gabinete"]] = $EG["num_estudios_gab"] ;
 
     array_push($est_tipo , $tipo_est_paciente);
     array_push($num_estdsTotales , $num_est);
@@ -43,14 +43,19 @@
 
   $totalEst=array_combine($estTotales, $ceros);     
   foreach ($pacienteEstdios as $key => $value) {
-    $estdCombinados = array_merge($totalEst, $value); 
-    $pacienteEstdios[$key] = $estdCombinados;
+    foreach ($value as $k => $v) {
+      $estdCombinados = array_merge($totalEst, $v); 
+      $pacienteEstdios[$key][$k] = $estdCombinados;
+    }
   }     
 
   foreach ($pacienteEstdios as $key => &$value) {
     $codigoPaciente = '#'. str_pad($key,5,"0",STR_PAD_LEFT);  
-    $estdiosPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$value;
-    array_push($data , $estdiosPorPaciente);
+    foreach ($value as $k => $v) {
+      $estdiosPorPaciente = array('TIPO DE CONSULTA' => $k)+$v;
+      $estdiosPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$estdiosPorPaciente;
+      array_push($data , $estdiosPorPaciente);
+    }
   }
 
   // Original PHP code by Chirp Internet: www.chirp.com.au

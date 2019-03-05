@@ -1,10 +1,8 @@
 <?php
 
-if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["submitTodo"]) ||  isset($_POST["updateTodo"])) {
+	(isset($_POST["updateTodo"])) ? $id = $_POST['pacienteId'] : '';
 
-	$mandar = $_POST["submitTodo"];
-	$con =  @mysqli_connect($bd_host, $bd_user, $bd_pass, $bd_name);
-	
 	function filtrado($datos){
 		$datos = trim($datos); // Elimina espacios antes y después de los datos
 		$datos = stripslashes($datos); // Elimina backslashes
@@ -43,6 +41,12 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 		$lugar_residencia = filtrado($_POST["residencia"]);		
 	}
 
+	($_POST['estados'] !== 'null' )? $estado = filtrado($_POST["estados"]):$estado = null;
+
+	///PERIODO
+    isset($_POST['inicio_consultas']) ? $inicio_consultas = $_POST['inicio_consultas'] : $inicio_consultas = "";
+    isset($_POST['fin_consultas']) ? $fin_consultas = $_POST['fin_consultas'] : $fin_consultas ="";
+
 	//CLASIFICACIÓN DE LA ENFERMEDAD
 
 	$id_anio_evol = filtrado($_POST["anios_evol"]);
@@ -76,7 +80,7 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
 	//ESTUDIOS
     isset($_POST['estudiosLab']) ? $estudiosLab = $_POST['estudiosLab'] : $estudiosLab = null;   
     isset($_POST['tipoConsulEstLab']) ? $tipoConsulEstLab = $_POST['tipoConsulEstLab'] : "";
-    isset($_POST['cantidadEstLab']) ? $cantidadEstLab = $_POST['cantidadEstLab'] : "";
+    isset($_POST['cantidadEstLab']) ? $cantidadEstLab = $_POST['cantidadEstLab'] : "";    
 	
 	isset($_POST['pruebAlerg']) ? $pruebsAlerg = $_POST['pruebAlerg'] : $pruebsAlerg = null;   
     isset($_POST['tipoConsulPruebAlerg']) ? $tipoConsulPruebAlerg = $_POST['tipoConsulPruebAlerg'] : "";
@@ -89,10 +93,6 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
     isset($_POST['procedimientos']) ? $procedimientos = $_POST['procedimientos'] : $procedimientos = null;   
     isset($_POST['tipoConsulProced']) ? $tipoConsulProced = $_POST['tipoConsulProced'] : "";
     isset($_POST['cantidadProced']) ? $cantidadProced = $_POST['cantidadProced'] :"";
-	
-	///PERIODO
-    isset($_POST['inicio_consultas']) ? $inicio_consultas = $_POST['inicio_consultas'] : $inicio_consultas = "";
-    isset($_POST['fin_consultas']) ? $fin_consultas = $_POST['fin_consultas'] : $fin_consultas ="";
 	
 	///CONSULTAS
     isset($_POST['numConsultasSet']) ? $numConsultasSet = $_POST['numConsultasSet'] : $numConsultasSet = "";
@@ -154,22 +154,20 @@ if(isset($_POST["submitTodo"]) && $_SERVER["REQUEST_METHOD"] == "POST"){
  	if ($tipo_consultaSet !== null){
 		$numMismaConsulta=array_count_values($tipo_consultaSet);
 	}
-		$consulta_general='Consulta General';
-		$diasConsulta_general = isset($numMismaConsulta[$consulta_general]) ? $numMismaConsulta[$consulta_general] : 0;
+		$diasConsulta_general = isset($numMismaConsulta['Consulta General']) ? $numMismaConsulta['Consulta General'] : "0";
 
-		$interconsulta='Interconsulta';
-		$diasInterconsulta = isset($numMismaConsulta[$interconsulta]) ? $numMismaConsulta[$interconsulta] : 0;
+		$diasInterconsulta = isset($numMismaConsulta['Interconsulta']) ? $numMismaConsulta['Interconsulta'] : "0";
 
-	$diasConsulta = $diasConsulta_general + $diasInterconsulta; 		
-		$urgencias = 'Urgencias';
-	$diasUrgencias = isset($numMismaConsulta[$urgencias]) ? $numMismaConsulta[$urgencias] : "";
+	$diasConsultaTotal = $diasConsulta_general + $diasInterconsulta; 
+
+	$diasUrgenciasTotal = isset($numMismaConsulta['Urgencias']) ? $numMismaConsulta['Urgencias'] : "0";
 	
 
-	isset($_POST['dias_consul']) ? $dias_consul = filtrado($_POST['dias_consul']) : "";
-    isset($_POST['dias_escol']) ? $dias_escol = filtrado($_POST['dias_escol']) : "";
-	isset($_POST['dias_acomp']) ? $dias_acomp = filtrado($_POST['dias_acomp']) : "";
-    isset($_POST['dias_urgen']) ? $dias_urgen = filtrado($_POST['dias_urgen']) : "";
-    isset($_POST['dias_incap']) ? $dias_incap = filtrado($_POST['dias_incap']) : "";
+	//isset($_POST['dias_consul']) ? $dias_consul = filtrado($_POST['dias_consul']) : "0";
+    isset($_POST['dias_escol']) ? $dias_escol = filtrado($_POST['dias_escol']) : "0";
+	isset($_POST['dias_acomp']) ? $dias_acomp = filtrado($_POST['dias_acomp']) : "0";
+    //isset($_POST['dias_urgen']) ? $dias_urgen = filtrado($_POST['dias_urgen']) : "0";
+    isset($_POST['dias_incap']) ? $dias_incap = filtrado($_POST['dias_incap']) : "0";
 
 }
 ?>

@@ -57,11 +57,24 @@ var optEstGabDuplicado = {
         title: 'Estudio duplicado'
 };
 
+function getEstGabsPacnte() {
+	var idP = $('#pacienteId').val();
+	var action = 'estudios_gab';
+	$.ajax({
+	    type: "POST",
+	    url: "includes/estudios.php",
+	    data:{idP:idP,action:action},
+	    dataType: "json",	
+	    success : function(data){ 
+			createEstGabRow(data.data);
+		}
+	});
+}
+if ($('#pacienteId').val() !== '') {
+	getEstGabsPacnte();
+}
 
-function createEstGabRow(){
- 	if($('#get_cantidad_estudGab').val() == '' || $('#get_cantidad_estudGab').val() < 1){         
-	    $( "#num_estGab_vacio" ).dialog(optEstGabVacio).dialog("open");
-   	}else { 
+function createEstGabRow(data = false){ 	 
 		var tipoConsulEstGabSelector= document.getElementById('tipoConsulEstGabSelect');
 		var tipoConsulEstGabSelected = tipoConsulEstGabSelector[tipoConsulEstGabSelector.selectedIndex].value;
 		var estGabSelector = document.getElementById('estudiosGabSelect');
@@ -72,19 +85,34 @@ function createEstGabRow(){
 		}else{
 			var estGabSelected = estGabSelector[estGabSelector.selectedIndex].value;
 		}
-		var set_cantidadProced=document.getElementById("get_cantidad_estudGab").value;
+		var set_cantidadEstGab=document.getElementById("get_cantidad_estudGab").value;
 		
 		var estGabTable=document.getElementById("estGab_table");
 		var estGabTable_len=(estGabTable.rows.length);
-		var estGabRow = estGabTable.insertRow(estGabTable_len).outerHTML="<tr id='rowEstGab"+estGabTable_len+"' class='estGabRow'>" +
-			"<td style='padding: 1px;' id='tipoConsulEstGabSelect_row"+estGabTable_len+"'>"+tipoConsulEstGabSelected+"</td><input name='tipoConsulEstGab[]' value='"+tipoConsulEstGabSelected+"' hidden>"+
-			"<td style='padding: 1px;' id='estSelect_row"+estGabTable_len+"'>"+estGabSelected+"</td><input name='estudiosGab[]' value='"+estGabSelected+"' hidden>"+
-			"<td style='padding: 1px;'  id='cantidadEstGab_row"+estGabTable_len+"'>"+set_cantidadProced+"<input id='cantidadEstGab_input"+estGabTable_len+"' name='cantidadEstGab[]' value='"+set_cantidadProced+"' hidden></td>" +
-			"<td style='padding: 1px;' >"+
-					"<div class='row'><input type='button' id='edit_button"+estGabTable_len+"' value='Editar' class='edit btn btn-info mx-3' onclick='edit_estGabRow("+estGabTable_len+")' hidden>" +
-					"<input type='button' id='save_button"+estGabTable_len+"' value='Save' class='save btn btn-success mx-3' onclick='save_estGabRow("+estGabTable_len+")' style='display: none;'>" +
+	if(data !== false){
+		$.each( data, function( key, value ) {
+			var estGabRow = estGabTable.insertRow(estGabTable_len).outerHTML="<tr id='rowEstGab"+estGabTable_len+"' class='estGabRow'>" +
+				"<td style='padding: 1px;'>"+value.tipo_consulta+"</td><input name='tipoConsulEstGab[]' value='"+value.tipo_consulta+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.estudios_gabinete+"</td><input name='estudiosGab[]' value='"+value.estudios_gabinete+"' hidden>"+
+				"<td style='padding: 1px;'>"+value.num_estudios_gab+"<input id='cantidadEstGab_input"+estGabTable_len+"' name='cantidadEstGab[]' value='"+value.num_estudios_gab+"' hidden></td>" +
+				"<td class='consultaNEstudioGab' hidden>"+value.tipo_consulta+value.estudios_gabinete+"</td>"+
+				"<td style='padding: 1px;' >"+
 					"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_estGab("+estGabTable_len+")'></div>"+
 				"</td>" +"</tr>";
+			estGabTable_len++;
+		});
+		data = false;
+	}else if($('#get_cantidad_estudGab').val() == '' || $('#get_cantidad_estudGab').val() < 1){         
+	    $( "#num_estGab_vacio" ).dialog(optEstGabVacio).dialog("open");
+   	}else {
+		var estGabRow = estGabTable.insertRow(estGabTable_len).outerHTML="<tr id='rowEstGab"+estGabTable_len+"' class='estGabRow'>" +
+			"<td style='padding: 1px;'>"+tipoConsulEstGabSelected+"</td><input name='tipoConsulEstGab[]' value='"+tipoConsulEstGabSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+estGabSelected+"</td><input name='estudiosGab[]' value='"+estGabSelected+"' hidden>"+
+			"<td style='padding: 1px;'>"+set_cantidadEstGab+"<input name='cantidadEstGab[]' value='"+set_cantidadEstGab+"' hidden></td>" +
+			"<td class='consultaNEstudioGab' hidden>"+tipoConsulEstGabSelected+estGabSelected+"</td>"+
+			"<td style='padding: 1px;' >"+
+				"<input type='button' value='Borrar' class='delete btn btn-danger mx-2' onclick='delete_estGab("+estGabTable_len+")'></div>"+
+			"</td>" +"</tr>";
 	}
 	$('#otro_estudio_gab').val('');	
  } 
@@ -100,12 +128,25 @@ function add_estGab() {
 	}else{
 		var estGabSelected = estGabSelector[estGabSelector.selectedIndex].value;
 	}
-	var estGabAgregado = $('#estGab_table td:contains('+estGabSelected+')').length;
-	var tipoConsultAgregada = $('#estGab_table td:contains('+tipoConsulEstGabSelected+')').length;
-
+	function compare(a, b) {
+		    return typeof a === 'string' && typeof b === 'string'
+		        ? a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0
+		        : a === b;
+		}
+		var cYe = $(".consultaNEstudioGab");
+		for (i = 0; i < cYe.length; i++) {
+		    if ($(cYe[i]).text().length) {
+   				var iguales = compare($(cYe[i]).text(), tipoConsulEstGabSelected+estGabSelected);
+				if (iguales == true){
+					$( "#estGab_duplicado" ).dialog(optEstGabDuplicado).dialog( "open" );
+					return false;
+				}
+			} 
+		}
+	var consultaNEstudioGab = $('#estGab_table td:contains('+tipoConsulEstGabSelected+estGabSelected+')').length;
 	if (estGabSelected !== ""){
 		if($(".estGabRow").length){
-			if (estGabAgregado > 0  && tipoConsultAgregada > 0){
+			if (consultaNEstudioGab > 0){
 				$( "#estGab_duplicado" ).dialog(optEstGabDuplicado).dialog( "open" );
 			return false;
 			}else {
@@ -120,6 +161,8 @@ function add_estGab() {
 }
 
 function delete_estGab(no,) {
+	$("#rowEstGab"+no+"").next('input').remove();
+	$("#rowEstGab"+no+"").next('input').remove();
 	$("#rowEstGab"+no+"").next('input').remove();
 	document.getElementById("rowEstGab"+no+"").outerHTML="";
 	$('#agregarEstGab').prop('disabled', false);

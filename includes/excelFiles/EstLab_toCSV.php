@@ -11,19 +11,21 @@
     $est_lab=array();    
     $pacienteEstdios = array();    
     $data = array();
+    $tipos_consultas = array();
 
   while ($EL = @mysqli_fetch_array($result))
   {
     $idPaciente = isset($EL["id_paciente"]) ? $EL["id_paciente"] : '';
     $tipo_est_paciente = isset($EL["estudios_laboratorio"]) ? $EL["estudios_laboratorio"] : '';
     $num_est = isset($EL["num_estudios_lab"]) ? $EL["num_estudios_lab"] : '';
+    $tipo_consulta = isset($EL["tipo_consulta"]) ? $EL["tipo_consulta"] : '';
       
-    $pacienteEstdios[$EL["id_paciente"]][$EL["estudios_laboratorio"]] = $EL["num_estudios_lab"];
+    $pacienteEstdios[$EL["id_paciente"]][$EL["tipo_consulta"]][$EL["estudios_laboratorio"]] =  $EL["num_estudios_lab"];
 
     array_push($est_tipo , $tipo_est_paciente);
     array_push($num_ests_Totales , $num_est);
     array_push($idsPaciente , $idPaciente);
-
+    
     $estynum = array($tipo_est_paciente => $num_est);
     array_push($estLabPacnt , $estynum);    
   }
@@ -43,14 +45,19 @@
 
   $totalEst=array_combine($estTotales, $ceros);     
   foreach ($pacienteEstdios as $key => $value) {
-    $estdCombinados = array_merge($totalEst, $value); 
-    $pacienteEstdios[$key] = $estdCombinados;
+    foreach ($value as $k => $v) {
+        $estdCombinados = array_merge($totalEst, $v); 
+        $pacienteEstdios[$key][$k] = $estdCombinados;
+    }
   }     
 
   foreach ($pacienteEstdios as $key => &$value) {
     $codigoPaciente = '#'. str_pad($key,5,"0",STR_PAD_LEFT);  
-    $estdiosPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$value;
-    array_push($data , $estdiosPorPaciente);
+    foreach ($value as $k => $v) {
+      $estdiosPorPaciente = array('TIPO DE CONSULTA' => $k)+$v;
+      $estdiosPorPaciente = array('CODIGO PACIENTE' => $codigoPaciente)+$estdiosPorPaciente;
+      array_push($data , $estdiosPorPaciente);
+    }
   }
 
   // Original PHP code by Chirp Internet: www.chirp.com.au
